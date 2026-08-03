@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Manrope:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/style.css?v=20260803b">
+    <link rel="stylesheet" href="/css/style.css?v=20260804">
 </head>
 <body class="admin-body">
 
@@ -171,12 +171,17 @@
             <div id="view-site" class="admin-view" style="display: none;">
                 <div class="admin-header">
                     <h2>站点内容</h2>
-                    <button class="btn btn-primary" id="site-save-btn" onclick="AdminApp.saveSiteContent()">
-                        保存站点内容
-                    </button>
+                    <div style="display: flex; gap: 0.6rem;">
+                        <button type="button" class="btn btn-sm" onclick="AdminApp.resetSiteFormToDefaults()" title="使用默认中文内容填充表单（不自动保存）">
+                            恢复默认内容
+                        </button>
+                        <button class="btn btn-primary" id="site-save-btn" onclick="AdminApp.saveSiteContent()">
+                            保存站点内容
+                        </button>
+                    </div>
                 </div>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
-                    编辑站点的所有可见文案。保存后立即在前台生效（GitHub 模式约1分钟内上线）。
+                    编辑站点的所有可见文案。空字段会保留前台默认内容，不会让主页变空白。保存后约1分钟内上线。
                 </p>
 
                 <!-- 站点元信息 -->
@@ -397,8 +402,8 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="/js/config.js?v=20260803b"></script>
-    <script src="/js/site.js?v=20260803b"></script>
-    <script src="/js/admin.js?v=20260803b"></script>
+    <script src="/js/config.js?v=20260804"></script>
+    <script src="/js/site.js?v=20260804"></script>
+    <script src="/js/admin.js?v=20260804"></script>
 </body>
 </html>
