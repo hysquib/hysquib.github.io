@@ -1,43 +1,43 @@
 /**
- * AdminApp — Blog management system
+ * AdminApp — 博客管理系统
  * -----------------------------------------------------------------------------
- * Handles admin authentication, post CRUD operations, and storage management.
+ * 负责管理认证、文章 CRUD 操作和存储管理。
  *
- * Storage modes:
- *   1. "local"  — Posts saved to browser localStorage (default, no setup needed)
- *   2. "github" — Posts published to GitHub repo via Contents API (live updates)
+ * 存储模式：
+ *   1. "local"  — 文章保存到浏览器 localStorage（默认，无需配置）
+ *   2. "github" — 文章通过 Contents API 发布到 GitHub 仓库（实时更新）
  *
- * Security note: The password is a client-side gatekeeper (SHA-256 hash check).
- * For true write security, use GitHub mode with a Personal Access Token.
+ * 安全说明：密码是客户端守门人（SHA-256 哈希校验）。
+ * 若需真正的写入保护，请使用 GitHub 模式配合 Personal Access Token。
  */
 
 const AdminApp = {
 
-    // ── State ────────────────────────────────────────────────────────────────
+    // ── 状态 ────────────────────────────────────────────────────────────────
     posts: [],
     editingPostId: null,
-    fileSha: null,        // GitHub file SHA (needed for API updates)
+    fileSha: null,        // GitHub 文件 SHA（API 更新时需要）
 
-    // Session keys
+    // 会话键
     AUTH_KEY:     'blog_admin_auth',
     TOKEN_KEY:    'blog_github_token',
     STORAGE_KEY:  'blog_storage_mode',
     LOCAL_POSTS:  'blog_posts_local',
 
-    // ── Initialization ───────────────────────────────────────────────────────
+    // ── 初始化 ───────────────────────────────────────────────────────────────
     init() {
-        // Check if already authenticated
+        // 检查是否已认证
         if (sessionStorage.getItem(this.AUTH_KEY) === 'true') {
             this.showDashboard();
         }
 
-        // Login form handler
+        // 登录表单处理
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.handleLogin();
         });
 
-        // Sidebar navigation
+        // 侧边栏导航
         document.querySelectorAll('.admin-nav-item[data-view]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const view = btn.dataset.view;
@@ -50,23 +50,23 @@ const AdminApp = {
             });
         });
 
-        // Logout
+        // 退出登录
         document.getElementById('logout-btn').addEventListener('click', () => this.logout());
 
-        // Populate config display
+        // 填充配置显示
         document.getElementById('config-repo').textContent = CONFIG.GITHUB_REPO;
         document.getElementById('config-branch').textContent = CONFIG.GITHUB_BRANCH;
         document.getElementById('config-file').textContent = CONFIG.POSTS_FILE_PATH;
 
-        // Set storage mode select
+        // 设置存储模式下拉框
         const mode = this.getStorageMode();
         document.getElementById('storage-mode-select').value = mode;
     },
 
-    // ── Authentication ───────────────────────────────────────────────────────
+    // ── 认证 ─────────────────────────────────────────────────────────────────
 
     /**
-     * Hash a password using SHA-256 (Web Crypto API).
+     * 使用 SHA-256 哈希密码（Web Crypto API）。
      */
     async hashPassword(password) {
         const encoder = new TextEncoder();
@@ -77,7 +77,7 @@ const AdminApp = {
     },
 
     /**
-     * Handle login form submission.
+     * 处理登录表单提交。
      */
     async handleLogin() {
         const input = document.getElementById('login-password');
@@ -86,7 +86,7 @@ const AdminApp = {
         const password = input.value;
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Verifying...';
+        btn.innerHTML = '<span class="spinner"></span> 验证中...';
         errorEl.classList.remove('visible');
 
         try {
@@ -101,17 +101,17 @@ const AdminApp = {
                 input.focus();
             }
         } catch (err) {
-            errorEl.textContent = 'An error occurred. Please try again.';
+            errorEl.textContent = '发生错误，请重试。';
             errorEl.classList.add('visible');
             console.error(err);
         }
 
         btn.disabled = false;
-        btn.textContent = 'Unlock Dashboard';
+        btn.textContent = '解锁控制台';
     },
 
     /**
-     * Log out and clear session.
+     * 退出登录并清除会话。
      */
     logout() {
         sessionStorage.removeItem(this.AUTH_KEY);
@@ -121,7 +121,7 @@ const AdminApp = {
     },
 
     /**
-     * Show the dashboard after successful authentication.
+     * 认证成功后显示控制台。
      */
     showDashboard() {
         document.getElementById('login-view').style.display = 'none';
@@ -130,25 +130,25 @@ const AdminApp = {
         this.loadPosts();
     },
 
-    // ── View Management ──────────────────────────────────────────────────────
+    // ── 视图管理 ──────────────────────────────────────────────────────────────
 
     /**
-     * Switch between dashboard views.
+     * 切换控制台视图。
      */
     showView(viewName) {
-        // Hide all views
+        // 隐藏所有视图
         document.querySelectorAll('.admin-view').forEach(v => v.style.display = 'none');
 
-        // Show selected view
+        // 显示选定视图
         const view = document.getElementById(`view-${viewName}`);
         if (view) view.style.display = 'block';
 
-        // Update sidebar active state
+        // 更新侧边栏激活状态
         document.querySelectorAll('.admin-nav-item[data-view]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === viewName);
         });
 
-        // Load data for specific views
+        // 为特定视图加载数据
         if (viewName === 'posts-list') {
             this.loadPosts();
         } else if (viewName === 'settings') {
@@ -157,7 +157,7 @@ const AdminApp = {
     },
 
     /**
-     * Show the post editor for creating or editing.
+     * 显示文章编辑器（新建或编辑）。
      */
     showEditor(mode, postId = null) {
         this.showView('post-editor');
@@ -168,12 +168,12 @@ const AdminApp = {
         if (mode === 'edit' && postId) {
             const post = this.posts.find(p => p.id === postId);
             if (!post) {
-                this.showToast('Post not found', 'error');
+                this.showToast('文章未找到', 'error');
                 this.showView('posts-list');
                 return;
             }
             this.editingPostId = postId;
-            titleEl.textContent = 'Edit Post';
+            titleEl.textContent = '编辑文章';
             deleteBtn.style.display = 'inline-flex';
 
             document.getElementById('post-title').value = post.title || '';
@@ -183,7 +183,7 @@ const AdminApp = {
             document.getElementById('post-date').value = post.date || '';
         } else {
             this.editingPostId = null;
-            titleEl.textContent = 'New Post';
+            titleEl.textContent = '新建文章';
             deleteBtn.style.display = 'none';
 
             document.getElementById('post-title').value = '';
@@ -193,7 +193,7 @@ const AdminApp = {
             document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
         }
 
-        // Update active nav state
+        // 更新导航激活状态
         document.querySelectorAll('.admin-nav-item[data-view]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === 'post-editor');
         });
@@ -201,7 +201,7 @@ const AdminApp = {
         this.updatePreview();
     },
 
-    // ── Storage Mode ─────────────────────────────────────────────────────────
+    // ── 存储模式 ─────────────────────────────────────────────────────────────────
 
     getStorageMode() {
         return localStorage.getItem(this.STORAGE_KEY) || 'local';
@@ -210,7 +210,7 @@ const AdminApp = {
     changeStorageMode(mode) {
         localStorage.setItem(this.STORAGE_KEY, mode);
         this.updateStorageBadges();
-        this.showToast(`Switched to ${mode === 'github' ? 'GitHub' : 'Local'} storage mode`, 'success');
+        this.showToast(`已切换到${mode === 'github' ? 'GitHub' : '本地'}存储模式`, 'success');
         this.loadPosts();
     },
 
@@ -221,7 +221,7 @@ const AdminApp = {
 
         [badge1, badge2].forEach(badge => {
             if (!badge) return;
-            badge.textContent = mode === 'github' ? 'GitHub' : 'Local';
+            badge.textContent = mode === 'github' ? 'GitHub' : '本地';
             badge.classList.toggle('local', mode === 'local');
         });
     },
@@ -236,13 +236,13 @@ const AdminApp = {
         const input = document.getElementById('github-token');
         const token = input.value.trim();
         if (!token) {
-            this.showToast('Please enter a token', 'error');
+            this.showToast('请输入令牌', 'error');
             return;
         }
         sessionStorage.setItem(this.TOKEN_KEY, token);
         input.value = '';
-        this.showToast('Token saved for this session', 'success');
-        // Verify token by attempting to load
+        this.showToast('令牌已保存至当前会话', 'success');
+        // 通过尝试加载来验证令牌
         this.loadPosts();
     },
 
@@ -250,11 +250,11 @@ const AdminApp = {
         const hasToken = !!this.getGitHubToken();
         const input = document.getElementById('github-token');
         if (input) {
-            input.placeholder = hasToken ? 'Token saved (enter new to replace)' : 'ghp_xxxxxxxxxxxx...';
+            input.placeholder = hasToken ? '令牌已保存（输入新令牌可替换）' : 'ghp_xxxxxxxxxxxx...';
         }
     },
 
-    // ── Load Posts ───────────────────────────────────────────────────────────
+    // ── 加载文章 ───────────────────────────────────────────────────────────
 
     async loadPosts() {
         const container = document.getElementById('admin-post-list');
@@ -274,7 +274,7 @@ const AdminApp = {
         } catch (err) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--danger);">
-                    <p style="margin-bottom: 0.5rem;">Failed to load posts</p>
+                    <p style="margin-bottom: 0.5rem;">加载文章失败</p>
                     <p style="font-size: 0.85rem; color: var(--text-dim);">${this.escapeHtml(err.message)}</p>
                 </div>
             `;
@@ -299,7 +299,7 @@ const AdminApp = {
     async loadPostsFromGitHub() {
         const token = this.getGitHubToken();
         if (!token) {
-            throw new Error('No GitHub token. Add one in Settings.');
+            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
         }
 
         const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/${CONFIG.POSTS_FILE_PATH}?ref=${CONFIG.GITHUB_BRANCH}`;
@@ -311,7 +311,7 @@ const AdminApp = {
         });
 
         if (res.status === 404) {
-            // File doesn't exist yet — start with empty posts
+            // 文件不存在 — 从空文章开始
             this.posts = [];
             this.fileSha = null;
             return;
@@ -319,13 +319,13 @@ const AdminApp = {
 
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || `GitHub API error: ${res.status}`);
+            throw new Error(err.message || `GitHub API 错误：${res.status}`);
         }
 
         const data = await res.json();
         this.fileSha = data.sha;
 
-        // Decode base64 content
+        // 解码 base64 内容
         const content = atob(data.content.replace(/\n/g, ''));
         try {
             const parsed = JSON.parse(content);
@@ -335,7 +335,7 @@ const AdminApp = {
         }
     },
 
-    // ── Save Posts ───────────────────────────────────────────────────────────
+    // ── 保存文章 ───────────────────────────────────────────────────────────
 
     async savePosts() {
         const mode = this.getStorageMode();
@@ -355,7 +355,7 @@ const AdminApp = {
     async savePostsToGitHub() {
         const token = this.getGitHubToken();
         if (!token) {
-            throw new Error('No GitHub token. Add one in Settings.');
+            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
         }
 
         const content = JSON.stringify({ posts: this.posts }, null, 2);
@@ -363,13 +363,13 @@ const AdminApp = {
 
         const body = {
             message: this.editingPostId
-                ? `Update post: ${this.getEditingTitle()}`
-                : `Create new post: ${this.getEditingTitle()}`,
+                ? `更新文章：${this.getEditingTitle()}`
+                : `新建文章：${this.getEditingTitle()}`,
             content: base64Content,
             branch: CONFIG.GITHUB_BRANCH,
         };
 
-        // Include SHA if file exists (required for updates)
+        // 如果文件存在则包含 SHA（更新时必需）
         if (this.fileSha) {
             body.sha = this.fileSha;
         }
@@ -387,7 +387,7 @@ const AdminApp = {
 
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || `GitHub API error: ${res.status}`);
+            throw new Error(err.message || `GitHub API 错误：${res.status}`);
         }
 
         const data = await res.json();
@@ -395,10 +395,10 @@ const AdminApp = {
     },
 
     getEditingTitle() {
-        return document.getElementById('post-title').value || 'Untitled';
+        return document.getElementById('post-title').value || '无标题';
     },
 
-    // ── Post CRUD ────────────────────────────────────────────────────────────
+    // ── 文章 CRUD ────────────────────────────────────────────────────────────
 
     async savePost() {
         const title = document.getElementById('post-title').value.trim();
@@ -407,14 +407,14 @@ const AdminApp = {
         const excerpt = document.getElementById('post-excerpt').value.trim();
         const date = document.getElementById('post-date').value || new Date().toISOString().split('T')[0];
 
-        // Validation
+        // 验证
         if (!title) {
-            this.showToast('Please enter a title', 'error');
+            this.showToast('请输入标题', 'error');
             document.getElementById('post-title').focus();
             return;
         }
         if (!content) {
-            this.showToast('Please enter some content', 'error');
+            this.showToast('请输入正文内容', 'error');
             document.getElementById('post-content').focus();
             return;
         }
@@ -427,11 +427,11 @@ const AdminApp = {
 
         const btn = document.getElementById('save-btn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Saving...';
+        btn.innerHTML = '<span class="spinner"></span> 保存中...';
 
         try {
             if (this.editingPostId) {
-                // Update existing post
+                // 更新现有文章
                 const index = this.posts.findIndex(p => p.id === this.editingPostId);
                 if (index !== -1) {
                     this.posts[index] = {
@@ -444,9 +444,9 @@ const AdminApp = {
                     };
                 }
             } else {
-                // Create new post
+                // 新建文章
                 const id = this.slugify(title);
-                // Ensure unique ID
+                // 确保 ID 唯一
                 let uniqueId = id;
                 let counter = 1;
                 while (this.posts.some(p => p.id === uniqueId)) {
@@ -464,39 +464,39 @@ const AdminApp = {
                 });
             }
 
-            // Sort by date descending
+            // 按日期倒序排列
             this.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             await this.savePosts();
 
             this.showToast(
-                this.editingPostId ? 'Post updated successfully!' : 'Post published successfully!',
+                this.editingPostId ? '文章更新成功！' : '文章发布成功！',
                 'success'
             );
 
             this.showView('posts-list');
         } catch (err) {
-            this.showToast(`Save failed: ${err.message}`, 'error');
+            this.showToast(`保存失败：${err.message}`, 'error');
         }
 
         btn.disabled = false;
-        btn.textContent = 'Save & Publish';
+        btn.textContent = '保存并发布';
     },
 
     async deleteCurrentPost() {
         if (!this.editingPostId) return;
 
-        if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) {
+        if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
             return;
         }
 
         try {
             this.posts = this.posts.filter(p => p.id !== this.editingPostId);
             await this.savePosts();
-            this.showToast('Post deleted', 'success');
+            this.showToast('文章已删除', 'success');
             this.showView('posts-list');
         } catch (err) {
-            this.showToast(`Delete failed: ${err.message}`, 'error');
+            this.showToast(`删除失败：${err.message}`, 'error');
         }
     },
 
@@ -504,19 +504,19 @@ const AdminApp = {
         const post = this.posts.find(p => p.id === postId);
         if (!post) return;
 
-        if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) return;
+        if (!confirm(`删除「${post.title}」？此操作不可撤销。`)) return;
 
         try {
             this.posts = this.posts.filter(p => p.id !== postId);
             await this.savePosts();
-            this.showToast('Post deleted', 'success');
+            this.showToast('文章已删除', 'success');
             this.renderPostList();
         } catch (err) {
-            this.showToast(`Delete failed: ${err.message}`, 'error');
+            this.showToast(`删除失败：${err.message}`, 'error');
         }
     },
 
-    // ── Render Post List ─────────────────────────────────────────────────────
+    // ── 渲染文章列表 ─────────────────────────────────────────────────────────
 
     renderPostList() {
         const container = document.getElementById('admin-post-list');
@@ -526,9 +526,9 @@ const AdminApp = {
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--text-dim);">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">No posts yet</h3>
-                    <p style="font-size: 0.85rem; margin-bottom: 1rem;">Create your first blog post to get started.</p>
-                    <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">Create Post</button>
+                    <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">暂无文章</h3>
+                    <p style="font-size: 0.85rem; margin-bottom: 1rem;">创建你的第一篇博客文章开始吧。</p>
+                    <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">创建文章</button>
                 </div>
             `;
             return;
@@ -544,13 +544,13 @@ const AdminApp = {
                     </div>
                 </div>
                 <div class="admin-post-actions">
-                    <a href="/post.html?id=${encodeURIComponent(post.id)}" target="_blank" class="icon-btn" title="View post">
+                    <a href="/post.html?id=${encodeURIComponent(post.id)}" target="_blank" class="icon-btn" title="查看文章">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
-                    <button class="icon-btn" title="Edit" onclick="AdminApp.showEditor('edit', '${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn" title="编辑" onclick="AdminApp.showEditor('edit', '${this.escapeHtml(post.id)}')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="icon-btn danger" title="Delete" onclick="AdminApp.deletePost('${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn danger" title="删除" onclick="AdminApp.deletePost('${this.escapeHtml(post.id)}')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                 </div>
@@ -558,14 +558,14 @@ const AdminApp = {
         `).join('');
     },
 
-    // ── Live Preview ─────────────────────────────────────────────────────────
+    // ── 实时预览 ─────────────────────────────────────────────────────────────────
 
     updatePreview() {
         const content = document.getElementById('post-content').value;
         const preview = document.getElementById('post-preview');
 
         if (!content.trim()) {
-            preview.innerHTML = '<p style="color: var(--text-dim);">Preview will appear here...</p>';
+            preview.innerHTML = '<p style="color: var(--text-dim);">预览将在此处显示...</p>';
             return;
         }
 
@@ -577,7 +577,7 @@ const AdminApp = {
         }
     },
 
-    // ── Export / Import ──────────────────────────────────────────────────────
+    // ── 导出 / 导入 ──────────────────────────────────────────────────────────────
 
     exportData() {
         const data = JSON.stringify({ posts: this.posts }, null, 2);
@@ -585,10 +585,10 @@ const AdminApp = {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `blog-posts-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `博客文章-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        this.showToast('Posts exported', 'success');
+        this.showToast('文章已导出', 'success');
     },
 
     async importData(event) {
@@ -599,59 +599,63 @@ const AdminApp = {
             const text = await file.text();
             const data = JSON.parse(text);
             if (!data.posts || !Array.isArray(data.posts)) {
-                throw new Error('Invalid file format');
+                throw new Error('文件格式无效');
             }
 
-            if (!confirm(`Import ${data.posts.length} posts? This will replace your current local posts.`)) {
+            if (!confirm(`导入 ${data.posts.length} 篇文章？这将替换当前本地文章。`)) {
                 return;
             }
 
             this.posts = data.posts;
             this.savePostsToLocal();
             this.renderPostList();
-            this.showToast(`Imported ${data.posts.length} posts`, 'success');
+            this.showToast(`已导入 ${data.posts.length} 篇文章`, 'success');
         } catch (err) {
-            this.showToast(`Import failed: ${err.message}`, 'error');
+            this.showToast(`导入失败：${err.message}`, 'error');
         }
 
         event.target.value = '';
     },
 
-    // ── Utilities ────────────────────────────────────────────────────────────
+    // ── 工具函数 ────────────────────────────────────────────────────────────
 
     slugify(text) {
-        return text
+        // 中文标题使用时间戳生成 ID，避免乱码
+        const ts = Date.now().toString(36);
+        // 尝试提取英文/数字部分
+        const englishPart = text
             .toLowerCase()
             .trim()
-            .replace(/[^\w\s-]/g, '')     // Remove non-word chars
-            .replace(/[\s_-]+/g, '-')      // Replace spaces/underscores with hyphens
-            .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        return englishPart || `post-${ts}`;
     },
 
     generateExcerpt(content) {
-        // Strip markdown syntax and get first ~150 chars
+        // 去除 Markdown 语法并取前约 100 字
         const plain = content
-            .replace(/^#+\s+/gm, '')       // Headers
-            .replace(/\*\*(.+?)\*\*/g, '$1') // Bold
-            .replace(/\*(.+?)\*/g, '$1')     // Italic
-            .replace(/`(.+?)`/g, '$1')       // Inline code
-            .replace(/\[(.+?)\]\(.+?\)/g, '$1') // Links
-            .replace(/!\[.*?\]\(.+?\)/g, '')   // Images
-            .replace(/^\s*[-*]\s+/gm, '')     // List items
-            .replace(/^\s*\d+\.\s+/gm, '')    // Numbered lists
-            .replace(/>\s+/gm, '')            // Blockquotes
-            .replace(/```[\s\S]*?```/g, '')   // Code blocks
-            .replace(/\n{2,}/g, '\n')         // Multiple newlines
+            .replace(/^#+\s+/gm, '')       // 标题
+            .replace(/\*\*(.+?)\*\*/g, '$1') // 粗体
+            .replace(/\*(.+?)\*/g, '$1')     // 斜体
+            .replace(/`(.+?)`/g, '$1')       // 行内代码
+            .replace(/\[(.+?)\]\(.+?\)/g, '$1') // 链接
+            .replace(/!\[.*?\]\(.+?\)/g, '')   // 图片
+            .replace(/^\s*[-*]\s+/gm, '')     // 列表项
+            .replace(/^\s*\d+\.\s+/gm, '')    // 有序列表
+            .replace(/>\s+/gm, '')            // 引用
+            .replace(/```[\s\S]*?```/g, '')   // 代码块
+            .replace(/\n{2,}/g, '\n')         // 多个换行
             .trim();
 
-        return plain.length > 150
-            ? plain.substring(0, 150).trim() + '...'
+        return plain.length > 100
+            ? plain.substring(0, 100).trim() + '...'
             : plain;
     },
 
     formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -664,7 +668,7 @@ const AdminApp = {
         return div.innerHTML;
     },
 
-    // ── Toast Notifications ──────────────────────────────────────────────────
+    // ── 提示通知 ──────────────────────────────────────────────────────────
 
     showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
@@ -682,5 +686,5 @@ const AdminApp = {
     },
 };
 
-// Initialize on page load
+// 页面加载时初始化
 document.addEventListener('DOMContentLoaded', () => AdminApp.init());

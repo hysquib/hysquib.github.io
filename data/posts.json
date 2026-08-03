@@ -1,28 +1,28 @@
 {
   "posts": [
     {
-      "id": "welcome-to-my-blog",
-      "title": "Welcome to My Blog",
+      "id": "static-sites-are-the-future",
+      "title": "静态网站是网络未来的回归",
       "date": "2026-08-03",
-      "tags": ["meta", "personal"],
-      "excerpt": "Every journey begins with a single step. This is mine — a space for thoughts on technology, design, and the craft of building.",
-      "content": "# Welcome to My Blog\n\nEvery journey begins with a single step. This is mine — a space for thoughts on technology, design, and the craft of building things that matter.\n\n## What to Expect\n\nI'll be writing about:\n\n- **Software engineering** — patterns, architectures, and lessons learned\n- **Design** — the intersection of aesthetics and function\n- **Tools** — what I use and why\n- **Reflections** — bigger picture thinking about our craft\n\n## A Bit About This Site\n\nThis blog runs entirely on **GitHub Pages** — no server, no database, just static files. The admin panel uses the GitHub API to manage posts, committing changes directly to the repository.\n\n```javascript\n// It's just static files, served with love\nconst site = {\n  hosting: 'GitHub Pages',\n  domain: 'blog.hysquib.cn',\n  cms: 'Built-in admin panel',\n};\n```\n\n> Simplicity is the ultimate sophistication.\n\nThanks for stopping by. More posts coming soon."
+      "tags": ["Web", "静态网站", "哲学"],
+      "excerpt": "当框架疲劳来袭，我发现自己在回归最简单的形式——纯 HTML、CSS 和 JavaScript。一个反思。",
+      "content": "## 复杂性的代价\n\n我们构建了前所未有的复杂工具来解决本应简单的问题。一个博客文章页面现在加载 3MB 的 JavaScript 来渲染 800 字的文字。这并不正常。\n\n我花了数年时间追逐最新的框架——React、Vue、Svelte、Solid——每一个都承诺更简单的开发者体验。然而，每一次切换都带来了新的认知负担、新的 API、新的方式让简单的事物变得复杂。\n\n## 回归本源\n\n这个网站是刻意的极简主义。没有构建步骤。没有打包器。没有依赖。只有 HTML、CSS 和 vanilla JavaScript。\n\n```\n这不是一个技术能力的问题——\n而是一个意图的问题。\n```\n\n页面在毫秒内加载。在任何浏览器中工作。在未来十年内仍然可读。当服务器崩溃、CDN 失败、JavaScript 框架被遗忘时，这些文字仍然会在这里，安静地渲染。\n\n## 平衡的论点\n\n我不是说框架没有用武之地。复杂的应用需要复杂的工具。但大多数网站不是复杂的应用。它们是文字、图片和想法——而文字不应该需要 JavaScript 运行时来显示。\n\n静态网站教会我区分*必要*的复杂性和*意外*的复杂性。前者来自问题本身；后者来自我们选择的工具。\n\n## 结论\n\n网络的承诺是普遍可访问性。每当我们添加一个依赖、一个构建步骤、一个客户端路由器，我们就关闭了一扇门。静态网站重新打开它们。\n\n这是我的回归。也许也是你的。"
     },
     {
-      "id": "building-static-sites",
-      "title": "Why I Chose a Static Site",
-      "date": "2026-08-02",
-      "tags": ["web", "architecture"],
-      "excerpt": "In a world of complex frameworks and serverless functions, there's something deeply satisfying about a site that's just files on a disk.",
-      "content": "# Why I Chose a Static Site\n\nIn a world of complex frameworks and serverless functions, there's something deeply satisfying about a site that's just files on a disk.\n\n## The Case for Static\n\nStatic sites offer several compelling advantages:\n\n1. **Speed** — no server processing means instant page loads\n2. **Security** — no attack surface, no database to protect\n3. **Simplicity** — fewer moving parts means fewer things break\n4. **Cost** — GitHub Pages is free, forever\n\n## The Admin Challenge\n\nThe traditional critique of static sites is content management. Without a server, how do you write posts?\n\nThe answer: **the GitHub API**. My admin panel authenticates with a personal access token and commits changes directly to the repository. GitHub Pages rebuilds automatically.\n\n```\nBrowser -> Admin Panel -> GitHub API -> Repository -> Pages Rebuild\n```\n\nIt's elegant. The content lives in version control. The admin is stateless. The hosting is free.\n\n## Trade-offs\n\nThis isn't perfect. The rebuild takes a minute. There's no real-time editing. But for a personal blog, these are acceptable trade-offs for the simplicity gained."
+      "id": "the-editable-web",
+      "title": "可编辑的网络：关于拥有你自己的角落",
+      "date": "2026-07-25",
+      "tags": ["Web", "独立性", "写作"],
+      "excerpt": "互联网曾是人们编辑自己页面的地方。现在我们租用平台上的空间。是时候重新思考了。",
+      "content": "## 租户与所有者\n\n早期的网络是可编辑的。你学习一点 HTML，将文件上传到服务器，你就拥有了一个角落。它很乱、很丑、很个人。\n\n今天的网络大多是租用的。我们在 Medium 上写作，在 Twitter 上发推，在 Substack 上发布。这些平台很美观、很流畅、很——关键的是——不属于我们。我们用所有权换取了便利。\n\n## 拥有的成本\n\n运行自己的网站有成本。你需要：\n\n- 一个域名（约 10 美元/年）\n- 托管（免费到几美元/月）\n- 一些技术意愿\n\n但成本是有限的，而租用的成本是无限的。平台可以更改条款、关闭、被收购、被遗忘。你的文件是你的文件。\n\n## 静态的复兴\n\nGitHub Pages、Netlify、Vercel 等平台让静态托管变得免费且简单。你可以将 HTML 文件提交到 git，几分钟后它就上线了。没有服务器需要管理，没有数据库需要备份。\n\n> 拥有一个地方是写好东西的第一步。\n\n## 个人语调\n\n租用平台鼓励表演——为算法优化、为互动设计。拥有的空间鼓励真诚——为自己写作，为偶然经过的访客写作。\n\n这个网站就是那种空间。它是我的角落。欢迎你停留。"
     },
     {
-      "id": "design-philosophy",
-      "title": "Design Philosophy: Less, but Better",
-      "date": "2026-08-01",
-      "tags": ["design", "philosophy"],
-      "excerpt": "Good design isn't about adding more. It's about removing until only the essential remains — then polishing that until it shines.",
-      "content": "# Design Philosophy: Less, but Better\n\nGood design isn't about adding more. It's about removing until only the essential remains — then polishing that until it shines.\n\n## The Discipline of Subtraction\n\nEvery element on a page should earn its place. If you can remove something without losing meaning, remove it.\n\n## Typography First\n\nBefore color, before layout, before anything — get the typography right. Words are the medium of the web. If they're not beautiful, nothing else matters.\n\n- Choose fonts with character\n- Set generous line heights\n- Create clear hierarchy\n- Respect the reader's eye\n\n## Dark Mode Done Right\n\nDark themes are more than inverting colors. They require:\n\n- Warm, not pure black backgrounds\n- Muted, not screaming accents\n- Careful contrast ratios\n- Subtle textures for depth\n\nThis site uses a warm gold accent (`#c9a96e`) on a near-black background — editorial, refined, and easy on the eyes.\n\n> Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.\n\nDesign is an ongoing process. This site will evolve. But the philosophy remains: **less, but better**."
+      "id": "building-this-site",
+      "title": "构建这个网站：技术与选择",
+      "date": "2026-07-20",
+      "tags": ["开发", "设计", "CSS"],
+      "excerpt": "技术决策的逐步拆解——从字体选择到布局系统，以及介于两者之间的一切。",
+      "content": "## 设计哲学\n\n我想构建一个感觉*编辑性*的网站——像一本杂志或一本好书。深色、温暖、有意图。不是另一个 SaaS 落地页。\n\n## 字体\n\n我选择了三种字体：\n\n- **Fraunces** 用于显示标题（一种有性格的可变衬线字体）\n- **Manrope** 用于 UI 文本（干净、几何、易读）\n- **JetBrains Mono** 用于代码（因为它就是为此而生的）\n\n字体加载是性能的瓶颈。我使用 `font-display: swap` 来避免不可见文本，并预连接到字体源。\n\n## 颜色系统\n\n一个 CSS 自定义属性系统：\n\n```css\n:root {\n  --bg: #0c0c0d;\n  --bg-elevated: #161618;\n  --text: #e8e6e0;\n  --text-muted: #a8a39a;\n  --accent: #d4a574;\n}\n```\n\n深色，但不是纯黑。文本是奶油色，不是白色。强调色是温暖的、近乎金色的色调——让人想起旧纸张和墨水。\n\n## 布局\n\n没有 CSS 框架。只是：\n\n- 用于文章列表的 CSS Grid\n- 用于文本流的最大宽度限制\n- 用于边距的流畅类型比例\n\n## 内容管理\n\n文章作为 JSON 文件存储，通过 `fetch()` 加载并在客户端渲染。编辑通过一个简单的管理面板完成，使用 GitHub Contents API 直接提交回仓库。\n\n没有数据库。没有 CMS。没有构建步骤。只是一个文件，一个获取请求，和一些 JavaScript。\n\n## 结论\n\n这个网站是刻意简单的。每一条线路都有理由存在。每一个选择都是*足够好*与*过度工程*之间的对话。我希望它感觉像一个安静的地方——远离通常网络的喧嚣。"
     }
   ]
 }

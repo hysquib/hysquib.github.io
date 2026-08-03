@@ -1,39 +1,38 @@
 /**
- * Site Configuration
+ * 站点配置
  * -----------------------------------------------------------------------------
- * Edit this file to customize your site. After changing, commit to GitHub
- * and GitHub Pages will rebuild automatically.
+ * 编辑此文件以自定义你的站点。修改后提交到 GitHub，GitHub Pages 会自动重新构建。
  */
 
 const CONFIG = {
-    // ── Admin Password ──────────────────────────────────────────────────────
-    // SHA-256 hash of the admin login password.
-    // Default password is: Mty103015.
+    // ── 管理密码 ────────────────────────────────────────────────────────────
+    // 管理员登录密码的 SHA-256 哈希值。
+    // 当前密码为：Mty103015.
     //
-    // To set your own password, run this in a terminal:
-    //   echo -n "your_password" | sha256sum
-    // Then paste the output hash below.
+    // 修改密码的方法，在终端运行：
+    //   echo -n "你的新密码" | sha256sum
+    // 然后将输出的哈希值粘贴到下方。
     PASSWORD_HASH: '04f449c3889bb43663231a12b5174cb178c9b53ab24eaf2ea2e46bcf7ebbd2cd',
 
-    // ── GitHub Repository ───────────────────────────────────────────────────
-    // Used by the admin panel to publish posts back to your repo.
-    // Format: "owner/repo-name"
+    // ── GitHub 仓库 ─────────────────────────────────────────────────────────
+    // 管理面板通过此配置将文章发布回你的仓库。
+    // 格式："所有者/仓库名"
     GITHUB_REPO: 'hysquib/hysquib.github.io',
 
-    // Branch to commit blog post changes to
+    // 提交博客文章修改的分支
     GITHUB_BRANCH: 'main',
 
-    // Path to the posts JSON file within the repo
+    // 仓库内文章 JSON 文件的路径
     POSTS_FILE_PATH: 'data/posts.json',
 
-    // ── Site Identity ───────────────────────────────────────────────────────
+    // ── 站点身份 ────────────────────────────────────────────────────────────
     SITE_NAME: 'hysquib',
     SITE_AUTHOR: 'hysquib',
-    SITE_TAGLINE: 'Builder · Writer · Thinker',
-    SITE_DESCRIPTION: 'Personal thoughts on technology, design, and the craft of building things that matter.',
+    SITE_TAGLINE: '构建者 · 写作者 · 思考者',
+    SITE_DESCRIPTION: '关于技术、设计与构建有意义之物的个人思考。',
 
-    // ── Social Links ────────────────────────────────────────────────────────
-    // Leave empty ('') to hide a link from the homepage.
+    // ── 社交链接 ────────────────────────────────────────────────────────────
+    // 留空（''）则不在首页显示该链接。
     SOCIAL: {
         github:   'https://github.com/hysquib',
         twitter:  '',
@@ -41,6 +40,6 @@ const CONFIG = {
         rss:      '/data/posts.json',
     },
 
-    // ── Posts per page ──────────────────────────────────────────────────────
+    // ── 每页文章数 ──────────────────────────────────────────────────────────
     POSTS_PER_PAGE: 6,
 };
