@@ -1,38 +1,40 @@
 {
   "site": {
     "name": "hysquib",
-    "tagline": "哈基米南北路多",
-    "description": "(o^^o)"
+    "tagline": "构建者 · 写作者 · 思考者",
+    "description": "关于技术、设计与构建有意义之物的个人思考。"
   },
   "hero": {
-    "greeting": "hysquib的个人博客",
+    "greeting": "你好，我是",
     "name": "hysquib",
-    "accent": "🫪",
-    "tagline": "🫪",
-    "primary_button_text": "查看博客",
+    "accent": "用心构建，用爱分享。",
+    "tagline": "一名热爱开源与写作的开发者，在这里记录我的思考、学习与创造。",
+    "primary_button_text": "查看我的博客",
     "primary_button_link": "/blog.html",
-    "secondary_button_text": "介绍",
+    "secondary_button_text": "关于我",
     "secondary_button_link": "#about"
   },
   "about": {
-    "label": "关于",
+    "label": "关于我",
     "paragraphs": [
-      "🫪"
+      "我是 hysquib — 一名工程师、构建者，同时也是一个写作者。",
+      "我相信好的作品来自对细节的打磨，对用户的尊重，以及持续不断的学习。",
+      "这里是我的个人空间，用来记录技术笔记、项目思考和偶尔的个人随想。"
     ]
   },
   "sections": {
-    "latest_posts_eyebrow": "ææ°æç«",
-    "latest_posts_title": "è¿æåä½",
-    "latest_posts_link": "æ¥çå¨é¨ â",
-    "blog_eyebrow": "åå®¢",
-    "blog_title": "æææç«",
-    "blog_subtitle": "è®°å½æ³æ³ãåäº«ç»éªãçä¸æé¿çè¿¹ã"
+    "latest_posts_eyebrow": "最新文章",
+    "latest_posts_title": "近期写作",
+    "latest_posts_link": "查看全部 →",
+    "blog_eyebrow": "博客",
+    "blog_title": "所有文章",
+    "blog_subtitle": "记录想法、分享经验、留下成长痕迹。"
   },
   "nav": {
-    "home": "é¦é¡µ",
-    "blog": "åå®¢",
-    "about": "å³äº",
-    "admin": "ç®¡ç"
+    "home": "首页",
+    "blog": "博客",
+    "about": "关于",
+    "admin": "管理"
   },
   "social": {
     "github": "https://github.com/hysquib",
@@ -41,6 +43,6 @@
     "rss": "/data/posts.json"
   },
   "footer": {
-    "copyright_template": "Â© {year} hysquib. ç¨å¿æå»ºã"
+    "copyright_template": "© {year} hysquib. 用心构建。"
   }
 }
