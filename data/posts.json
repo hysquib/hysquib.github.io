@@ -1,0 +1,28 @@
+{
+  "posts": [
+    {
+      "id": "welcome-to-my-blog",
+      "title": "Welcome to My Blog",
+      "date": "2026-08-03",
+      "tags": ["meta", "personal"],
+      "excerpt": "Every journey begins with a single step. This is mine — a space for thoughts on technology, design, and the craft of building.",
+      "content": "# Welcome to My Blog\n\nEvery journey begins with a single step. This is mine — a space for thoughts on technology, design, and the craft of building things that matter.\n\n## What to Expect\n\nI'll be writing about:\n\n- **Software engineering** — patterns, architectures, and lessons learned\n- **Design** — the intersection of aesthetics and function\n- **Tools** — what I use and why\n- **Reflections** — bigger picture thinking about our craft\n\n## A Bit About This Site\n\nThis blog runs entirely on **GitHub Pages** — no server, no database, just static files. The admin panel uses the GitHub API to manage posts, committing changes directly to the repository.\n\n```javascript\n// It's just static files, served with love\nconst site = {\n  hosting: 'GitHub Pages',\n  domain: 'blog.hysquib.cn',\n  cms: 'Built-in admin panel',\n};\n```\n\n> Simplicity is the ultimate sophistication.\n\nThanks for stopping by. More posts coming soon."
+    },
+    {
+      "id": "building-static-sites",
+      "title": "Why I Chose a Static Site",
+      "date": "2026-08-02",
+      "tags": ["web", "architecture"],
+      "excerpt": "In a world of complex frameworks and serverless functions, there's something deeply satisfying about a site that's just files on a disk.",
+      "content": "# Why I Chose a Static Site\n\nIn a world of complex frameworks and serverless functions, there's something deeply satisfying about a site that's just files on a disk.\n\n## The Case for Static\n\nStatic sites offer several compelling advantages:\n\n1. **Speed** — no server processing means instant page loads\n2. **Security** — no attack surface, no database to protect\n3. **Simplicity** — fewer moving parts means fewer things break\n4. **Cost** — GitHub Pages is free, forever\n\n## The Admin Challenge\n\nThe traditional critique of static sites is content management. Without a server, how do you write posts?\n\nThe answer: **the GitHub API**. My admin panel authenticates with a personal access token and commits changes directly to the repository. GitHub Pages rebuilds automatically.\n\n```\nBrowser -> Admin Panel -> GitHub API -> Repository -> Pages Rebuild\n```\n\nIt's elegant. The content lives in version control. The admin is stateless. The hosting is free.\n\n## Trade-offs\n\nThis isn't perfect. The rebuild takes a minute. There's no real-time editing. But for a personal blog, these are acceptable trade-offs for the simplicity gained."
+    },
+    {
+      "id": "design-philosophy",
+      "title": "Design Philosophy: Less, but Better",
+      "date": "2026-08-01",
+      "tags": ["design", "philosophy"],
+      "excerpt": "Good design isn't about adding more. It's about removing until only the essential remains — then polishing that until it shines.",
+      "content": "# Design Philosophy: Less, but Better\n\nGood design isn't about adding more. It's about removing until only the essential remains — then polishing that until it shines.\n\n## The Discipline of Subtraction\n\nEvery element on a page should earn its place. If you can remove something without losing meaning, remove it.\n\n## Typography First\n\nBefore color, before layout, before anything — get the typography right. Words are the medium of the web. If they're not beautiful, nothing else matters.\n\n- Choose fonts with character\n- Set generous line heights\n- Create clear hierarchy\n- Respect the reader's eye\n\n## Dark Mode Done Right\n\nDark themes are more than inverting colors. They require:\n\n- Warm, not pure black backgrounds\n- Muted, not screaming accents\n- Careful contrast ratios\n- Subtle textures for depth\n\nThis site uses a warm gold accent (`#c9a96e`) on a near-black background — editorial, refined, and easy on the eyes.\n\n> Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.\n\nDesign is an ongoing process. This site will evolve. But the philosophy remains: **less, but better**."
+    }
+  ]
+}
