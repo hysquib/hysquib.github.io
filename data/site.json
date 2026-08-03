@@ -1,48 +1,44 @@
 {
   "site": {
-    "name": "hysquib",
-    "tagline": "构建者 · 写作者 · 思考者",
-    "description": "关于技术、设计与构建有意义之物的个人思考。"
+    "name": "",
+    "tagline": "哈基米南北路多",
+    "description": ""
   },
   "hero": {
-    "greeting": "— 你好，我是",
-    "name": "hysquib",
-    "accent": "一个构建者。",
-    "tagline": "我写关于技术、设计与构建有意义之物的思考。这是我的互联网一角——一个存放想法、实验与真诚反思的地方。",
-    "primary_button_text": "阅读博客",
-    "primary_button_link": "/blog.html",
-    "secondary_button_text": "关于我",
-    "secondary_button_link": "#about"
+    "greeting": "",
+    "name": "",
+    "accent": "",
+    "tagline": "",
+    "primary_button_text": "",
+    "primary_button_link": "",
+    "secondary_button_text": "",
+    "secondary_button_link": ""
   },
   "about": {
-    "label": "关于",
-    "paragraphs": [
-      "我是一名开发者，相信优秀的软件诞生于工程纪律与设计感知的交汇之处。",
-      "白天，我构建系统。夜晚，我书写它们——探索塑造我们创造网络的方式的想法、工具与哲学。",
-      "这个网站刻意保持简单：静态文件，快速加载，经久耐用。没有追踪，没有臃肿，没有噪音。只有文字与思想。"
-    ]
+    "label": "",
+    "paragraphs": []
   },
   "sections": {
-    "latest_posts_eyebrow": "写作",
-    "latest_posts_title": "最新文章",
-    "latest_posts_link": "查看全部 →",
-    "blog_eyebrow": "博客",
-    "blog_title": "写作与思考",
-    "blog_subtitle": "关于技术、设计与构建有意义之物的思考。"
-  },
-  "footer": {
-    "copyright_template": "© {year} hysquib. 用心构建。"
+    "latest_posts_eyebrow": "",
+    "latest_posts_title": "",
+    "latest_posts_link": "",
+    "blog_eyebrow": "",
+    "blog_title": "",
+    "blog_subtitle": ""
   },
   "nav": {
-    "home": "首页",
-    "blog": "博客",
-    "about": "关于",
-    "admin": "管理"
+    "home": "",
+    "blog": "",
+    "about": "",
+    "admin": ""
   },
   "social": {
-    "github": "https://github.com/hysquib",
+    "github": "",
     "twitter": "",
-    "email": "mailto:hello@hysquib.cn",
-    "rss": "/data/posts.json"
+    "email": "",
+    "rss": ""
+  },
+  "footer": {
+    "copyright_template": ""
   }
 }
