@@ -17,12 +17,15 @@ const AdminApp = {
     posts: [],
     editingPostId: null,
     fileSha: null,        // GitHub 文件 SHA（API 更新时需要）
+    siteData: null,       // 站点内容数据
+    siteFileSha: null,    // site.json 的 GitHub SHA
 
     // 会话键
     AUTH_KEY:     'blog_admin_auth',
     TOKEN_KEY:    'blog_github_token',
     STORAGE_KEY:  'blog_storage_mode',
     LOCAL_POSTS:  'blog_posts_local',
+    LOCAL_SITE:   'blog_site_local',
 
     // ── 初始化 ───────────────────────────────────────────────────────────────
     init() {
@@ -153,6 +156,8 @@ const AdminApp = {
             this.loadPosts();
         } else if (viewName === 'settings') {
             this.updateTokenField();
+        } else if (viewName === 'site') {
+            this.loadSiteContentIntoForm();
         }
     },
 
@@ -575,6 +580,310 @@ const AdminApp = {
         } else {
             preview.innerHTML = `<p>${this.escapeHtml(content)}</p>`;
         }
+    },
+
+    // ── 站点内容管理 ────────────────────────────────────────────────────────────
+
+    /**
+     * 加载站点内容数据（本地或 GitHub）。
+     */
+    async loadSiteData() {
+        const mode = this.getStorageMode();
+
+        if (mode === 'github') {
+            await this.loadSiteFromGitHub();
+        } else {
+            this.loadSiteFromLocal();
+        }
+        return this.siteData;
+    },
+
+    loadSiteFromLocal() {
+        const data = localStorage.getItem(this.LOCAL_SITE);
+        if (data) {
+            try {
+                this.siteData = JSON.parse(data);
+            } catch {
+                this.siteData = null;
+            }
+        } else {
+            this.siteData = null;
+        }
+        this.siteFileSha = null;
+    },
+
+    async loadSiteFromGitHub() {
+        const token = this.getGitHubToken();
+        if (!token) {
+            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
+        }
+
+        const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/data/site.json?ref=${CONFIG.GITHUB_BRANCH}`;
+        const res = await fetch(url, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+            },
+        });
+
+        if (res.status === 404) {
+            this.siteData = null;
+            this.siteFileSha = null;
+            return;
+        }
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub API 错误：${res.status}`);
+        }
+
+        const data = await res.json();
+        this.siteFileSha = data.sha;
+
+        const content = atob(data.content.replace(/\n/g, ''));
+        try {
+            this.siteData = JSON.parse(content);
+        } catch {
+            this.siteData = null;
+        }
+    },
+
+    /**
+     * 从远端加载最新的站点内容到表单（管理台用）。
+     * 如果 GitHub 模式无令牌或加载失败，回退到 fetch 公开文件。
+     */
+    async loadSiteContentIntoForm() {
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val ?? '';
+        };
+
+        try {
+            const mode = this.getStorageMode();
+            let data;
+
+            if (mode === 'github') {
+                try {
+                    data = await this.loadSiteFromGitHub();
+                } catch (err) {
+                    // 令牌问题等 — 回退到公开文件
+                    data = await this.fetchPublicSiteData();
+                }
+            } else {
+                this.loadSiteFromLocal();
+                data = this.siteData;
+                if (!data) {
+                    // 本地无数据 — 回退到公开文件
+                    data = await this.fetchPublicSiteData();
+                }
+            }
+
+            if (!data) {
+                this.showToast('未能加载站点内容', 'error');
+                return;
+            }
+
+            const s = data.site || {};
+            const h = data.hero || {};
+            const a = data.about || {};
+            const sec = data.sections || {};
+            const nav = data.nav || {};
+            const soc = data.social || {};
+            const foot = data.footer || {};
+
+            setVal('site-name', s.name);
+            setVal('site-tagline', s.tagline);
+            setVal('site-description', s.description);
+
+            setVal('hero-greeting', h.greeting);
+            setVal('hero-name', h.name);
+            setVal('hero-accent', h.accent);
+            setVal('hero-tagline', h.tagline);
+            setVal('hero-primary-text', h.primary_button_text);
+            setVal('hero-primary-link', h.primary_button_link);
+            setVal('hero-secondary-text', h.secondary_button_text);
+            setVal('hero-secondary-link', h.secondary_button_link);
+
+            setVal('about-label', a.label);
+            setVal('about-paragraphs', Array.isArray(a.paragraphs) ? a.paragraphs.join('\n') : '');
+
+            setVal('sec-latest-eyebrow', sec.latest_posts_eyebrow);
+            setVal('sec-latest-title', sec.latest_posts_title);
+            setVal('sec-latest-link', sec.latest_posts_link);
+            setVal('sec-blog-eyebrow', sec.blog_eyebrow);
+            setVal('sec-blog-title', sec.blog_title);
+            setVal('sec-blog-subtitle', sec.blog_subtitle);
+
+            setVal('nav-home', nav.home);
+            setVal('nav-blog', nav.blog);
+            setVal('nav-about', nav.about);
+            setVal('nav-admin', nav.admin);
+
+            setVal('social-github', soc.github);
+            setVal('social-twitter', soc.twitter);
+            setVal('social-email', soc.email);
+            setVal('social-rss', soc.rss);
+
+            setVal('footer-copyright', foot.copyright_template);
+        } catch (err) {
+            this.showToast(`加载站点内容失败：${err.message}`, 'error');
+        }
+    },
+
+    /**
+     * 从公开 URL 获取 site.json（用于回退）。
+     */
+    async fetchPublicSiteData() {
+        try {
+            const res = await fetch(`/data/site.json?t=${Date.now()}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            this.siteData = data;
+            return data;
+        } catch {
+            return null;
+        }
+    },
+
+    /**
+     * 从表单收集站点内容数据。
+     */
+    collectSiteDataFromForm() {
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        };
+
+        const paragraphs = getVal('about-paragraphs')
+            .split('\n')
+            .map(s => s.trim())
+            // 保留空行作为段落（用户可能想要空段），但去除尾部空行
+            .filter((line, i, arr) => !(line === '' && i === arr.length - 1));
+
+        return {
+            site: {
+                name: getVal('site-name'),
+                tagline: getVal('site-tagline'),
+                description: getVal('site-description'),
+            },
+            hero: {
+                greeting: getVal('hero-greeting'),
+                name: getVal('hero-name'),
+                accent: getVal('hero-accent'),
+                tagline: getVal('hero-tagline'),
+                primary_button_text: getVal('hero-primary-text'),
+                primary_button_link: getVal('hero-primary-link'),
+                secondary_button_text: getVal('hero-secondary-text'),
+                secondary_button_link: getVal('hero-secondary-link'),
+            },
+            about: {
+                label: getVal('about-label'),
+                paragraphs: paragraphs,
+            },
+            sections: {
+                latest_posts_eyebrow: getVal('sec-latest-eyebrow'),
+                latest_posts_title: getVal('sec-latest-title'),
+                latest_posts_link: getVal('sec-latest-link'),
+                blog_eyebrow: getVal('sec-blog-eyebrow'),
+                blog_title: getVal('sec-blog-title'),
+                blog_subtitle: getVal('sec-blog-subtitle'),
+            },
+            nav: {
+                home: getVal('nav-home'),
+                blog: getVal('nav-blog'),
+                about: getVal('nav-about'),
+                admin: getVal('nav-admin'),
+            },
+            social: {
+                github: getVal('social-github'),
+                twitter: getVal('social-twitter'),
+                email: getVal('social-email'),
+                rss: getVal('social-rss'),
+            },
+            footer: {
+                copyright_template: getVal('footer-copyright'),
+            },
+        };
+    },
+
+    /**
+     * 保存站点内容。
+     */
+    async saveSiteContent() {
+        const btn = document.getElementById('site-save-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> 保存中...';
+        }
+
+        try {
+            const data = this.collectSiteDataFromForm();
+            this.siteData = data;
+
+            const mode = this.getStorageMode();
+            if (mode === 'github') {
+                await this.saveSiteToGitHub(data);
+            } else {
+                this.saveSiteToLocal(data);
+            }
+
+            this.showToast('站点内容已保存！', 'success');
+
+            // 刷新 SiteApp 缓存
+            if (typeof SiteApp !== 'undefined') {
+                SiteApp.data = data;
+            }
+        } catch (err) {
+            this.showToast(`保存失败：${err.message}`, 'error');
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '保存站点内容';
+        }
+    },
+
+    saveSiteToLocal(data) {
+        localStorage.setItem(this.LOCAL_SITE, JSON.stringify(data, null, 2));
+    },
+
+    async saveSiteToGitHub(data) {
+        const token = this.getGitHubToken();
+        if (!token) {
+            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
+        }
+
+        const content = JSON.stringify(data, null, 2);
+        const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+        const body = {
+            message: '更新站点内容',
+            content: base64Content,
+            branch: CONFIG.GITHUB_BRANCH,
+        };
+
+        if (this.siteFileSha) {
+            body.sha = this.siteFileSha;
+        }
+
+        const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/data/site.json`;
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub API 错误：${res.status}`);
+        }
+
+        const resData = await res.json();
+        this.siteFileSha = resData.content.sha;
     },
 
     // ── 导出 / 导入 ──────────────────────────────────────────────────────────────
