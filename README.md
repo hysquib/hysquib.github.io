@@ -83,7 +83,7 @@ Edit `js/config.js` to customize:
 
 ### 6. Change Admin Password
 
-The default password is `admin123`. **Change it immediately:**
+The current password is set in `js/config.js`. To change it:
 
 ```bash
 # Generate a SHA-256 hash of your new password

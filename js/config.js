@@ -8,12 +8,12 @@
 const CONFIG = {
     // ── Admin Password ──────────────────────────────────────────────────────
     // SHA-256 hash of the admin login password.
-    // Default password is: admin123
+    // Default password is: Mty103015.
     //
     // To set your own password, run this in a terminal:
     //   echo -n "your_password" | sha256sum
     // Then paste the output hash below.
-    PASSWORD_HASH: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+    PASSWORD_HASH: '04f449c3889bb43663231a12b5174cb178c9b53ab24eaf2ea2e46bcf7ebbd2cd',
 
     // ── GitHub Repository ───────────────────────────────────────────────────
     // Used by the admin panel to publish posts back to your repo.
