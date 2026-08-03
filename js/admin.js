@@ -1,14 +1,12 @@
 /**
  * AdminApp — 博客管理系统
  * -----------------------------------------------------------------------------
- * 负责管理认证、文章 CRUD 操作和存储管理。
+ * 负责管理认证、文章 CRUD 操作和站点内容管理。
  *
- * 存储模式：
- *   1. "local"  — 文章保存到浏览器 localStorage（默认，无需配置）
- *   2. "github" — 文章通过 Contents API 发布到 GitHub 仓库（实时更新）
+ * 所有更改通过 GitHub Contents API 直接发布到仓库，GitHub Pages 自动重建后上线。
  *
  * 安全说明：密码是客户端守门人（SHA-256 哈希校验）。
- * 若需真正的写入保护，请使用 GitHub 模式配合 Personal Access Token。
+ * 写入操作通过 GitHub Personal Access Token 鉴权。
  */
 
 const AdminApp = {
@@ -16,16 +14,13 @@ const AdminApp = {
     // ── 状态 ────────────────────────────────────────────────────────────────
     posts: [],
     editingPostId: null,
-    fileSha: null,        // GitHub 文件 SHA（API 更新时需要）
+    fileSha: null,        // posts.json 的 GitHub SHA
     siteData: null,       // 站点内容数据
     siteFileSha: null,    // site.json 的 GitHub SHA
 
     // 会话键
     AUTH_KEY:     'blog_admin_auth',
     TOKEN_KEY:    'blog_github_token',
-    STORAGE_KEY:  'blog_storage_mode',
-    LOCAL_POSTS:  'blog_posts_local',
-    LOCAL_SITE:   'blog_site_local',
 
     // ── 初始化 ───────────────────────────────────────────────────────────────
     init() {
@@ -60,10 +55,6 @@ const AdminApp = {
         document.getElementById('config-repo').textContent = CONFIG.GITHUB_REPO;
         document.getElementById('config-branch').textContent = CONFIG.GITHUB_BRANCH;
         document.getElementById('config-file').textContent = CONFIG.POSTS_FILE_PATH;
-
-        // 设置存储模式下拉框
-        const mode = this.getStorageMode();
-        document.getElementById('storage-mode-select').value = mode;
     },
 
     // ── 认证 ─────────────────────────────────────────────────────────────────
@@ -129,7 +120,6 @@ const AdminApp = {
     showDashboard() {
         document.getElementById('login-view').style.display = 'none';
         document.getElementById('dashboard-view').style.display = 'grid';
-        this.updateStorageBadges();
         this.loadPosts();
     },
 
@@ -139,19 +129,15 @@ const AdminApp = {
      * 切换控制台视图。
      */
     showView(viewName) {
-        // 隐藏所有视图
         document.querySelectorAll('.admin-view').forEach(v => v.style.display = 'none');
 
-        // 显示选定视图
         const view = document.getElementById(`view-${viewName}`);
         if (view) view.style.display = 'block';
 
-        // 更新侧边栏激活状态
         document.querySelectorAll('.admin-nav-item[data-view]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === viewName);
         });
 
-        // 为特定视图加载数据
         if (viewName === 'posts-list') {
             this.loadPosts();
         } else if (viewName === 'settings') {
@@ -198,37 +184,11 @@ const AdminApp = {
             document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
         }
 
-        // 更新导航激活状态
         document.querySelectorAll('.admin-nav-item[data-view]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === 'post-editor');
         });
 
         this.updatePreview();
-    },
-
-    // ── 存储模式 ─────────────────────────────────────────────────────────────────
-
-    getStorageMode() {
-        return localStorage.getItem(this.STORAGE_KEY) || 'local';
-    },
-
-    changeStorageMode(mode) {
-        localStorage.setItem(this.STORAGE_KEY, mode);
-        this.updateStorageBadges();
-        this.showToast(`已切换到${mode === 'github' ? 'GitHub' : '本地'}存储模式`, 'success');
-        this.loadPosts();
-    },
-
-    updateStorageBadges() {
-        const mode = this.getStorageMode();
-        const badge1 = document.getElementById('storage-mode-badge');
-        const badge2 = document.getElementById('settings-storage-badge');
-
-        [badge1, badge2].forEach(badge => {
-            if (!badge) return;
-            badge.textContent = mode === 'github' ? 'GitHub' : '本地';
-            badge.classList.toggle('local', mode === 'local');
-        });
     },
 
     // ── GitHub Token ─────────────────────────────────────────────────────────
@@ -247,16 +207,35 @@ const AdminApp = {
         sessionStorage.setItem(this.TOKEN_KEY, token);
         input.value = '';
         this.showToast('令牌已保存至当前会话', 'success');
-        // 通过尝试加载来验证令牌
+        this.updateTokenField();
         this.loadPosts();
     },
 
     updateTokenField() {
         const hasToken = !!this.getGitHubToken();
         const input = document.getElementById('github-token');
+        const status = document.getElementById('token-status');
         if (input) {
             input.placeholder = hasToken ? '令牌已保存（输入新令牌可替换）' : 'ghp_xxxxxxxxxxxx...';
+            input.value = '';
         }
+        if (status) {
+            status.textContent = hasToken ? '✓ 令牌已设置，可以发布更改' : '⚠ 尚未设置令牌，无法发布';
+            status.style.color = hasToken ? 'var(--success, #4ade80)' : 'var(--text-dim)';
+        }
+    },
+
+    /**
+     * 检查是否设置了 GitHub 令牌，否则提示用户。
+     */
+    requireToken() {
+        const token = this.getGitHubToken();
+        if (!token) {
+            this.showToast('请先在设置中添加 GitHub 令牌', 'error');
+            this.showView('settings');
+            return false;
+        }
+        return true;
     },
 
     // ── 加载文章 ───────────────────────────────────────────────────────────
@@ -267,44 +246,37 @@ const AdminApp = {
 
         container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-dim);"><span class="spinner"></span></div>';
 
-        const mode = this.getStorageMode();
-
         try {
-            if (mode === 'github') {
-                await this.loadPostsFromGitHub();
-            } else {
-                this.loadPostsFromLocal();
-            }
+            await this.loadPostsFromGitHub();
             this.renderPostList();
         } catch (err) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 3rem; color: var(--danger);">
-                    <p style="margin-bottom: 0.5rem;">加载文章失败</p>
-                    <p style="font-size: 0.85rem; color: var(--text-dim);">${this.escapeHtml(err.message)}</p>
-                </div>
-            `;
+            // 令牌问题 — 回退到公开文件（只读视图）
+            if (!this.getGitHubToken()) {
+                await this.loadPostsFromPublic();
+                this.renderPostList(true);
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--danger);">
+                        <p style="margin-bottom: 0.5rem;">加载文章失败</p>
+                        <p style="font-size: 0.85rem; color: var(--text-dim);">${this.escapeHtml(err.message)}</p>
+                    </div>
+                `;
+            }
         }
     },
 
-    loadPostsFromLocal() {
-        const data = localStorage.getItem(this.LOCAL_POSTS);
-        if (data) {
-            try {
-                const parsed = JSON.parse(data);
-                this.posts = parsed.posts || [];
-            } catch {
-                this.posts = [];
-            }
-        } else {
-            this.posts = [];
-        }
+    async loadPostsFromPublic() {
+        const res = await fetch(`/data/posts.json?t=${Date.now()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        this.posts = data.posts || [];
         this.fileSha = null;
     },
 
     async loadPostsFromGitHub() {
         const token = this.getGitHubToken();
         if (!token) {
-            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
+            throw new Error('未设置 GitHub 令牌');
         }
 
         const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/${CONFIG.POSTS_FILE_PATH}?ref=${CONFIG.GITHUB_BRANCH}`;
@@ -316,7 +288,6 @@ const AdminApp = {
         });
 
         if (res.status === 404) {
-            // 文件不存在 — 从空文章开始
             this.posts = [];
             this.fileSha = null;
             return;
@@ -330,7 +301,6 @@ const AdminApp = {
         const data = await res.json();
         this.fileSha = data.sha;
 
-        // 解码 base64 内容
         const content = atob(data.content.replace(/\n/g, ''));
         try {
             const parsed = JSON.parse(content);
@@ -343,18 +313,7 @@ const AdminApp = {
     // ── 保存文章 ───────────────────────────────────────────────────────────
 
     async savePosts() {
-        const mode = this.getStorageMode();
-
-        if (mode === 'github') {
-            await this.savePostsToGitHub();
-        } else {
-            this.savePostsToLocal();
-        }
-    },
-
-    savePostsToLocal() {
-        const data = { posts: this.posts };
-        localStorage.setItem(this.LOCAL_POSTS, JSON.stringify(data, null, 2));
+        await this.savePostsToGitHub();
     },
 
     async savePostsToGitHub() {
@@ -374,7 +333,6 @@ const AdminApp = {
             branch: CONFIG.GITHUB_BRANCH,
         };
 
-        // 如果文件存在则包含 SHA（更新时必需）
         if (this.fileSha) {
             body.sha = this.fileSha;
         }
@@ -406,13 +364,14 @@ const AdminApp = {
     // ── 文章 CRUD ────────────────────────────────────────────────────────────
 
     async savePost() {
+        if (!this.requireToken()) return;
+
         const title = document.getElementById('post-title').value.trim();
         const content = document.getElementById('post-content').value.trim();
         const tagsStr = document.getElementById('post-tags').value.trim();
         const excerpt = document.getElementById('post-excerpt').value.trim();
         const date = document.getElementById('post-date').value || new Date().toISOString().split('T')[0];
 
-        // 验证
         if (!title) {
             this.showToast('请输入标题', 'error');
             document.getElementById('post-title').focus();
@@ -432,11 +391,10 @@ const AdminApp = {
 
         const btn = document.getElementById('save-btn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> 保存中...';
+        btn.innerHTML = '<span class="spinner"></span> 发布中...';
 
         try {
             if (this.editingPostId) {
-                // 更新现有文章
                 const index = this.posts.findIndex(p => p.id === this.editingPostId);
                 if (index !== -1) {
                     this.posts[index] = {
@@ -449,9 +407,7 @@ const AdminApp = {
                     };
                 }
             } else {
-                // 新建文章
                 const id = this.slugify(title);
-                // 确保 ID 唯一
                 let uniqueId = id;
                 let counter = 1;
                 while (this.posts.some(p => p.id === uniqueId)) {
@@ -469,13 +425,12 @@ const AdminApp = {
                 });
             }
 
-            // 按日期倒序排列
             this.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             await this.savePosts();
 
             this.showToast(
-                this.editingPostId ? '文章更新成功！' : '文章发布成功！',
+                this.editingPostId ? '文章更新成功！约1分钟内上线。' : '文章发布成功！约1分钟内上线。',
                 'success'
             );
 
@@ -490,10 +445,9 @@ const AdminApp = {
 
     async deleteCurrentPost() {
         if (!this.editingPostId) return;
+        if (!this.requireToken()) return;
 
-        if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
-            return;
-        }
+        if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) return;
 
         try {
             this.posts = this.posts.filter(p => p.id !== this.editingPostId);
@@ -506,6 +460,8 @@ const AdminApp = {
     },
 
     async deletePost(postId) {
+        if (!this.requireToken()) return;
+
         const post = this.posts.find(p => p.id === postId);
         if (!post) return;
 
@@ -523,7 +479,7 @@ const AdminApp = {
 
     // ── 渲染文章列表 ─────────────────────────────────────────────────────────
 
-    renderPostList() {
+    renderPostList(readOnly = false) {
         const container = document.getElementById('admin-post-list');
         if (!container) return;
 
@@ -533,13 +489,21 @@ const AdminApp = {
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">暂无文章</h3>
                     <p style="font-size: 0.85rem; margin-bottom: 1rem;">创建你的第一篇博客文章开始吧。</p>
-                    <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">创建文章</button>
+                    ${readOnly
+                        ? '<p style="font-size: 0.8rem; color: var(--text-dim);">⚠ 请先在设置中添加 GitHub 令牌以启用编辑</p>'
+                        : '<button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor(\'new\')">创建文章</button>'}
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = this.posts.map(post => `
+        const readOnlyBanner = readOnly
+            ? `<div style="padding: 0.8rem 1rem; background: var(--bg-elevated); border-radius: var(--radius); margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-dim);">
+                ⚠ 只读模式 — 请在设置中添加 GitHub 令牌以启用编辑和发布
+            </div>`
+            : '';
+
+        container.innerHTML = readOnlyBanner + this.posts.map(post => `
             <div class="admin-post-row">
                 <div class="admin-post-info">
                     <div class="admin-post-title">${this.escapeHtml(post.title)}</div>
@@ -585,72 +549,8 @@ const AdminApp = {
     // ── 站点内容管理 ────────────────────────────────────────────────────────────
 
     /**
-     * 加载站点内容数据（本地或 GitHub）。
-     */
-    async loadSiteData() {
-        const mode = this.getStorageMode();
-
-        if (mode === 'github') {
-            await this.loadSiteFromGitHub();
-        } else {
-            this.loadSiteFromLocal();
-        }
-        return this.siteData;
-    },
-
-    loadSiteFromLocal() {
-        const data = localStorage.getItem(this.LOCAL_SITE);
-        if (data) {
-            try {
-                this.siteData = JSON.parse(data);
-            } catch {
-                this.siteData = null;
-            }
-        } else {
-            this.siteData = null;
-        }
-        this.siteFileSha = null;
-    },
-
-    async loadSiteFromGitHub() {
-        const token = this.getGitHubToken();
-        if (!token) {
-            throw new Error('未设置 GitHub 令牌，请在设置中添加。');
-        }
-
-        const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/data/site.json?ref=${CONFIG.GITHUB_BRANCH}`;
-        const res = await fetch(url, {
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json',
-            },
-        });
-
-        if (res.status === 404) {
-            this.siteData = null;
-            this.siteFileSha = null;
-            return;
-        }
-
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || `GitHub API 错误：${res.status}`);
-        }
-
-        const data = await res.json();
-        this.siteFileSha = data.sha;
-
-        const content = atob(data.content.replace(/\n/g, ''));
-        try {
-            this.siteData = JSON.parse(content);
-        } catch {
-            this.siteData = null;
-        }
-    },
-
-    /**
-     * 从远端加载最新的站点内容到表单（管理台用）。
-     * 如果 GitHub 模式无令牌或加载失败，回退到 fetch 公开文件。
+     * 从远端加载站点内容到表单。
+     * 优先用 GitHub API（有令牌时），否则回退到公开文件。
      */
     async loadSiteContentIntoForm() {
         const setVal = (id, val) => {
@@ -659,23 +559,17 @@ const AdminApp = {
         };
 
         try {
-            const mode = this.getStorageMode();
             let data;
 
-            if (mode === 'github') {
+            if (this.getGitHubToken()) {
                 try {
-                    data = await this.loadSiteFromGitHub();
-                } catch (err) {
-                    // 令牌问题等 — 回退到公开文件
+                    await this.loadSiteFromGitHub();
+                    data = this.siteData;
+                } catch {
                     data = await this.fetchPublicSiteData();
                 }
             } else {
-                this.loadSiteFromLocal();
-                data = this.siteData;
-                if (!data) {
-                    // 本地无数据 — 回退到公开文件
-                    data = await this.fetchPublicSiteData();
-                }
+                data = await this.fetchPublicSiteData();
             }
 
             if (!data) {
@@ -730,9 +624,40 @@ const AdminApp = {
         }
     },
 
-    /**
-     * 从公开 URL 获取 site.json（用于回退）。
-     */
+    async loadSiteFromGitHub() {
+        const token = this.getGitHubToken();
+        if (!token) throw new Error('未设置 GitHub 令牌');
+
+        const url = `https://api.github.com/repos/${CONFIG.GITHUB_REPO}/contents/data/site.json?ref=${CONFIG.GITHUB_BRANCH}`;
+        const res = await fetch(url, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+            },
+        });
+
+        if (res.status === 404) {
+            this.siteData = null;
+            this.siteFileSha = null;
+            return;
+        }
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub API 错误：${res.status}`);
+        }
+
+        const data = await res.json();
+        this.siteFileSha = data.sha;
+
+        const content = atob(data.content.replace(/\n/g, ''));
+        try {
+            this.siteData = JSON.parse(content);
+        } catch {
+            this.siteData = null;
+        }
+    },
+
     async fetchPublicSiteData() {
         try {
             const res = await fetch(`/data/site.json?t=${Date.now()}`);
@@ -745,9 +670,6 @@ const AdminApp = {
         }
     },
 
-    /**
-     * 从表单收集站点内容数据。
-     */
     collectSiteDataFromForm() {
         const getVal = (id) => {
             const el = document.getElementById(id);
@@ -757,7 +679,6 @@ const AdminApp = {
         const paragraphs = getVal('about-paragraphs')
             .split('\n')
             .map(s => s.trim())
-            // 保留空行作为段落（用户可能想要空段），但去除尾部空行
             .filter((line, i, arr) => !(line === '' && i === arr.length - 1));
 
         return {
@@ -806,30 +727,23 @@ const AdminApp = {
         };
     },
 
-    /**
-     * 保存站点内容。
-     */
     async saveSiteContent() {
+        if (!this.requireToken()) return;
+
         const btn = document.getElementById('site-save-btn');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> 保存中...';
+            btn.innerHTML = '<span class="spinner"></span> 发布中...';
         }
 
         try {
             const data = this.collectSiteDataFromForm();
             this.siteData = data;
 
-            const mode = this.getStorageMode();
-            if (mode === 'github') {
-                await this.saveSiteToGitHub(data);
-            } else {
-                this.saveSiteToLocal(data);
-            }
+            await this.saveSiteToGitHub(data);
 
-            this.showToast('站点内容已保存！', 'success');
+            this.showToast('站点内容已发布！约1分钟内上线。', 'success');
 
-            // 刷新 SiteApp 缓存
             if (typeof SiteApp !== 'undefined') {
                 SiteApp.data = data;
             }
@@ -841,10 +755,6 @@ const AdminApp = {
             btn.disabled = false;
             btn.textContent = '保存站点内容';
         }
-    },
-
-    saveSiteToLocal(data) {
-        localStorage.setItem(this.LOCAL_SITE, JSON.stringify(data, null, 2));
     },
 
     async saveSiteToGitHub(data) {
@@ -886,52 +796,10 @@ const AdminApp = {
         this.siteFileSha = resData.content.sha;
     },
 
-    // ── 导出 / 导入 ──────────────────────────────────────────────────────────────
-
-    exportData() {
-        const data = JSON.stringify({ posts: this.posts }, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `博客文章-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showToast('文章已导出', 'success');
-    },
-
-    async importData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
-            if (!data.posts || !Array.isArray(data.posts)) {
-                throw new Error('文件格式无效');
-            }
-
-            if (!confirm(`导入 ${data.posts.length} 篇文章？这将替换当前本地文章。`)) {
-                return;
-            }
-
-            this.posts = data.posts;
-            this.savePostsToLocal();
-            this.renderPostList();
-            this.showToast(`已导入 ${data.posts.length} 篇文章`, 'success');
-        } catch (err) {
-            this.showToast(`导入失败：${err.message}`, 'error');
-        }
-
-        event.target.value = '';
-    },
-
     // ── 工具函数 ────────────────────────────────────────────────────────────
 
     slugify(text) {
-        // 中文标题使用时间戳生成 ID，避免乱码
         const ts = Date.now().toString(36);
-        // 尝试提取英文/数字部分
         const englishPart = text
             .toLowerCase()
             .trim()
@@ -942,19 +810,18 @@ const AdminApp = {
     },
 
     generateExcerpt(content) {
-        // 去除 Markdown 语法并取前约 100 字
         const plain = content
-            .replace(/^#+\s+/gm, '')       // 标题
-            .replace(/\*\*(.+?)\*\*/g, '$1') // 粗体
-            .replace(/\*(.+?)\*/g, '$1')     // 斜体
-            .replace(/`(.+?)`/g, '$1')       // 行内代码
-            .replace(/\[(.+?)\]\(.+?\)/g, '$1') // 链接
-            .replace(/!\[.*?\]\(.+?\)/g, '')   // 图片
-            .replace(/^\s*[-*]\s+/gm, '')     // 列表项
-            .replace(/^\s*\d+\.\s+/gm, '')    // 有序列表
-            .replace(/>\s+/gm, '')            // 引用
-            .replace(/```[\s\S]*?```/g, '')   // 代码块
-            .replace(/\n{2,}/g, '\n')         // 多个换行
+            .replace(/^#+\s+/gm, '')
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/`(.+?)`/g, '$1')
+            .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+            .replace(/!\[.*?\]\(.+?\)/g, '')
+            .replace(/^\s*[-*]\s+/gm, '')
+            .replace(/^\s*\d+\.\s+/gm, '')
+            .replace(/>\s+/gm, '')
+            .replace(/```[\s\S]*?```/g, '')
+            .replace(/\n{2,}/g, '\n')
             .trim();
 
         return plain.length > 100

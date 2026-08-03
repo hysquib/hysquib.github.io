@@ -96,7 +96,7 @@
                     <div>
                         <h2>博客文章</h2>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">
-                            存储模式：<span class="storage-badge" id="storage-mode-badge">本地</span>
+                            所有更改直接发布到 GitHub 仓库
                         </p>
                     </div>
                     <button class="btn btn-primary" onclick="AdminApp.showEditor('new')">
@@ -355,34 +355,17 @@
                     <h2>设置</h2>
                 </div>
 
-                <!-- 存储模式 -->
-                <div class="settings-card">
-                    <h3>存储模式</h3>
-                    <p>选择博客文章的存储方式。"GitHub" 模式直接发布到你的仓库（需要 Personal Access Token）。"本地" 模式仅在浏览器中保存文章。</p>
-
-                    <div class="form-group">
-                        <label for="storage-mode">当前模式</label>
-                        <select id="storage-mode-select" onchange="AdminApp.changeStorageMode(this.value)">
-                            <option value="local">本地存储（仅浏览器）</option>
-                            <option value="github">GitHub 仓库（实时发布）</option>
-                        </select>
-                    </div>
-
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">
-                        当前使用：<span class="storage-badge" id="settings-storage-badge">本地</span>
-                    </p>
-                </div>
-
                 <!-- GitHub Token -->
                 <div class="settings-card" id="github-token-card">
                     <h3>GitHub Personal Access Token</h3>
-                    <p>"GitHub" 存储模式必需。请前往 <a href="https://github.com/settings/tokens/new?scopes=repo&description=Blog%20Admin" target="_blank" style="color: var(--accent);">github.com/settings/tokens</a> 创建一个具有 <code style="color: var(--accent);">repo</code> 权限的令牌。令牌仅保存在当前浏览器会话中（关闭标签页即清除）。</p>
+                    <p>所有文章和站点内容的更改都会直接发布到你的 GitHub 仓库。请前往 <a href="https://github.com/settings/tokens/new?scopes=repo&description=Blog%20Admin" target="_blank" style="color: var(--accent);">github.com/settings/tokens</a> 创建一个具有 <code style="color: var(--accent);">repo</code> 权限的令牌。令牌仅保存在当前浏览器会话中（关闭标签页即清除）。</p>
 
                     <div class="form-group">
                         <label for="github-token">Personal Access Token</label>
                         <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx...">
                     </div>
                     <button class="btn btn-primary btn-sm" onclick="AdminApp.saveGitHubToken()">保存令牌</button>
+                    <p id="token-status" style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem;"></p>
                 </div>
 
                 <!-- 仓库信息 -->
@@ -393,19 +376,6 @@
                         <div><strong style="color: var(--text);">仓库：</strong> <span id="config-repo"></span></div>
                         <div><strong style="color: var(--text);">分支：</strong> <span id="config-branch"></span></div>
                         <div><strong style="color: var(--text);">文章文件：</strong> <span id="config-file"></span></div>
-                    </div>
-                </div>
-
-                <!-- 导出 / 导入（本地模式） -->
-                <div class="settings-card">
-                    <h3>数据管理</h3>
-                    <p>将本地文章导出为 JSON 文件，或从之前导出的文件导入文章。</p>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-sm" onclick="AdminApp.exportData()">导出文章</button>
-                        <label class="btn btn-sm" style="cursor: pointer;">
-                            导入文章
-                            <input type="file" accept=".json" style="display: none;" onchange="AdminApp.importData(event)">
-                        </label>
                     </div>
                 </div>
 
