@@ -1,48 +1,48 @@
 {
   "site": {
     "name": "hysquib",
-    "tagline": "构建者 · 写作者 · 思考者",
-    "description": "关于技术、设计与构建有意义之物的个人思考。"
+    "tagline": "æå»ºè Â· åä½è Â· æèè",
+    "description": "å³äºææ¯ãè®¾è®¡ä¸æå»ºææä¹ä¹ç©çä¸ªäººæèã"
   },
   "hero": {
-    "greeting": "你好，我是",
+    "greeting": "ä½ å¥½ï¼ææ¯",
     "name": "hysquib",
-    "accent": "用心构建，用爱分享。",
-    "tagline": "一名热爱开源与写作的开发者，在这里记录我的思考、学习与创造。",
-    "primary_button_text": "查看我的博客",
+    "accent": "ç¨å¿æå»ºï¼ç¨ç±åäº«ã",
+    "tagline": "ä¸åç­ç±å¼æºä¸åä½çå¼åèï¼å¨è¿éè®°å½æçæèãå­¦ä¹ ä¸åé ã",
+    "primary_button_text": "æ¥çæçåå®¢",
     "primary_button_link": "/blog.html",
-    "secondary_button_text": "关于我",
+    "secondary_button_text": "å³äºæ",
     "secondary_button_link": "#about"
   },
   "about": {
-    "label": "关于我",
+    "label": "å³äºæ",
     "paragraphs": [
-      "我是 hysquib — 一名工程师、构建者，同时也是一个写作者。",
-      "我相信好的作品来自对细节的打磨，对用户的尊重，以及持续不断的学习。",
-      "这里是我的个人空间，用来记录技术笔记、项目思考和偶尔的个人随想。"
+      "ææ¯ hysquib â ä¸åå·¥ç¨å¸ãæå»ºèï¼åæ¶ä¹æ¯ä¸ä¸ªåä½èã",
+      "æç¸ä¿¡å¥½çä½åæ¥èªå¯¹ç»èçæç£¨ï¼å¯¹ç¨æ·çå°éï¼ä»¥åæç»­ä¸æ­çå­¦ä¹ ã",
+      "è¿éæ¯æçä¸ªäººç©ºé´ï¼ç¨æ¥è®°å½ææ¯ç¬è®°ãé¡¹ç®æèåå¶å°çä¸ªäººéæ³ã"
     ]
   },
   "sections": {
-    "latest_posts_eyebrow": "最新文章",
-    "latest_posts_title": "近期写作",
-    "latest_posts_link": "查看全部 →",
-    "blog_eyebrow": "博客",
-    "blog_title": "所有文章",
-    "blog_subtitle": "记录想法、分享经验、留下成长痕迹。"
+    "latest_posts_eyebrow": "ææ°æç«",
+    "latest_posts_title": "è¿æåä½",
+    "latest_posts_link": "æ¥çå¨é¨ â",
+    "blog_eyebrow": "åå®¢",
+    "blog_title": "æææç«",
+    "blog_subtitle": "è®°å½æ³æ³ãåäº«ç»éªãçä¸æé¿çè¿¹ã"
   },
   "nav": {
-    "home": "首页",
-    "blog": "博客",
-    "about": "关于",
-    "admin": "管理"
+    "home": "é¦é¡µ",
+    "blog": "åå®¢",
+    "about": "å³äº",
+    "admin": "ç®¡ç"
   },
   "social": {
     "github": "https://github.com/hysquib",
     "twitter": "",
-    "email": "mailto:hello@hysquib.cn",
+    "email": "hysquib@icloud.com",
     "rss": "/data/posts.json"
   },
   "footer": {
-    "copyright_template": "© {year} hysquib. 用心构建。"
+    "copyright_template": "Â© {year} hysquib. ç¨å¿æå»ºã"
   }
 }
