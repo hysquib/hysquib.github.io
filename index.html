@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hysquib — Builder · Writer · Thinker</title>
-    <meta name="description" content="Personal thoughts on technology, design, and the craft of building things that matter.">
+    <title>hysquib — 构建者 · 写作者 · 思考者</title>
+    <meta name="description" content="关于技术、设计和构建有意义事物的个人思考。">
 
     <!-- Security Headers (meta tag fallback for GitHub Pages static hosting) -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*; connect-src 'self' https://api.github.com; frame-ancestors 'none';">
@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/style.css?v=20260804">
+    <link rel="stylesheet" href="/css/style.css?v=20260804c">
 </head>
 <body>
 
@@ -27,9 +27,9 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">hysquib<span>.</span></a>
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/blog.html">Blog</a></li>
-                <li><a href="/#about">About</a></li>
+                <li><a href="/">首页</a></li>
+                <li><a href="/blog.html">博客</a></li>
+                <li><a href="/#about">关于</a></li>
             </ul>
         </div>
     </nav>
@@ -39,15 +39,15 @@
         <div class="hero-bg"></div>
         <div class="container">
             <div class="hero-content">
-                <p class="hero-greeting">— Hello, I'm</p>
-                <h1>hysquib<br><span class="accent">a builder of things.</span></h1>
-                <p class="hero-tagline">I write about technology, design, and the craft of building things that matter. This is my corner of the internet — a place for ideas, experiments, and honest reflections.</p>
+                <p class="hero-greeting">— 你好，我是</p>
+                <h1>hysquib<br><span class="accent">一个构建者。</span></h1>
+                <p class="hero-tagline">我写关于技术、设计和构建有意义事物的思考。这是我在互联网的一角 — 一个存放想法、实验和真诚反思的地方。</p>
                 <div class="hero-actions">
                     <a href="/blog.html" class="btn btn-primary">
-                        Read the Blog
+                        阅读博客
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="#about" class="btn">About Me</a>
+                    <a href="#about" class="btn">关于我</a>
                 </div>
             </div>
         </div>
@@ -57,11 +57,11 @@
     <section class="section" id="about">
         <div class="container">
             <div class="about-grid reveal">
-                <div class="about-label">About</div>
+                <div class="about-label">关于</div>
                 <div class="about-text">
-                    <p>I'm a developer who believes that great software is built at the intersection of engineering discipline and design sensibility.</p>
-                    <p>By day, I build systems. By night, I write about them — exploring the ideas, tools, and philosophies that shape how we create for the web.</p>
-                    <p>This site is deliberately simple: static files, served fast, built to last. No tracking, no bloat, no noise. Just words and ideas.</p>
+                    <p>我是一个开发者，相信优秀的软件诞生于工程纪律与设计敏感度的交汇处。</p>
+                    <p>白天，我构建系统。夜晚，我书写它们 — 探索那些塑造我们如何为网络创造东西的理念、工具和哲学。</p>
+                    <p>这个网站刻意保持简单：静态文件，快速加载，经久耐用。没有追踪，没有臃肿，没有噪音。只有文字和思想。</p>
                 </div>
             </div>
         </div>
@@ -72,10 +72,10 @@
         <div class="container">
             <div class="section-header reveal">
                 <div>
-                    <span class="eyebrow">Writing</span>
-                    <h2>Latest Posts</h2>
+                    <span class="eyebrow">写作</span>
+                    <h2>最新文章</h2>
                 </div>
-                <a href="/blog.html" class="section-link">View all →</a>
+                <a href="/blog.html" class="section-link">查看全部 →</a>
             </div>
             <div class="posts-grid" id="latest-posts">
                 <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
@@ -90,13 +90,13 @@
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-social" id="footer-social"></div>
-                <p class="footer-copy">© <span id="year"></span> hysquib. Built with intention.</p>
+                <p class="footer-copy">© <span id="year"></span> hysquib. 用心构建。</p>
             </div>
         </div>
     </footer>
 
-    <script src="/js/config.js?v=20260804"></script>
-    <script src="/js/blog.js?v=20260804"></script>
+    <script src="/js/config.js?v=20260804c"></script>
+    <script src="/js/blog.js?v=20260804c"></script>
     <script>
         // Set year
         document.getElementById('year').textContent = new Date().getFullYear();
@@ -118,7 +118,7 @@
                 </a>`);
             }
             if (social.email) {
-                links.push(`<a href="${social.email}" title="Email" aria-label="Email">
+                links.push(`<a href="${social.email}" title="邮箱" aria-label="邮箱">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
                 </a>`);
             }
