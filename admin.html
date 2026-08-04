@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin — hysquib</title>
+    <title>管理 — hysquib</title>
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="googlebot" content="noindex, nofollow, noarchive">
 
@@ -19,13 +19,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/style.css?v=20260804b">
+    <link rel="stylesheet" href="/css/style.css?v=20260804c">
 </head>
 <body class="admin-body">
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         LOGIN VIEW
-         ═══════════════════════════════════════════════════════════════════════ -->
     <div id="login-view" class="admin-login">
         <div class="login-card">
             <div class="login-icon">
@@ -33,68 +30,62 @@
                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
                 </svg>
             </div>
-            <h1>Admin Panel</h1>
-            <p>Sign in with GitHub to manage your blog posts.</p>
+            <h1>管理后台</h1>
+            <p>使用 GitHub 登录以管理你的博客文章。</p>
 
             <button class="btn btn-primary" id="login-btn" style="width: 100%; justify-content: center; gap: 0.5rem;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                Login with GitHub
+                使用 GitHub 登录
             </button>
             <p class="form-error" id="login-error"></p>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         DASHBOARD VIEW (hidden until authenticated)
-         ═══════════════════════════════════════════════════════════════════════ -->
     <div id="dashboard-view" class="admin-layout" style="display: none;">
 
-        <!-- Sidebar -->
         <aside class="admin-sidebar">
-            <div class="admin-sidebar-logo">hysquib<span>.</span> <span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-body);">admin</span></div>
+            <div class="admin-sidebar-logo">hysquib<span>.</span> <span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-body);">管理</span></div>
 
             <nav class="admin-nav">
                 <button class="admin-nav-item active" data-view="posts-list">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
-                    <span>Posts</span>
+                    <span>文章列表</span>
                 </button>
                 <button class="admin-nav-item" data-view="post-editor" data-mode="new">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                    <span>New Post</span>
+                    <span>新建文章</span>
                 </button>
                 <button class="admin-nav-item" data-view="settings">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span>Settings</span>
+                    <span>设置</span>
                 </button>
                 <a href="/" class="admin-nav-item" target="_blank">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    <span>View Site</span>
+                    <span>访问站点</span>
                 </a>
             </nav>
 
             <div class="admin-sidebar-footer">
                 <button class="admin-nav-item" id="logout-btn" style="color: var(--danger);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    <span>Logout</span>
+                    <span>退出登录</span>
                 </button>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="admin-main">
 
-            <!-- ── Posts List View ─────────────────────────────────────────── -->
             <div id="view-posts-list" class="admin-view">
                 <div class="admin-header">
                     <div>
-                        <h2>Blog Posts</h2>
+                        <h2>博客文章</h2>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">
-                            Storage: <span class="storage-badge" id="storage-mode-badge">GitHub</span>
+                            存储方式：<span class="storage-badge" id="storage-mode-badge">GitHub</span>
                         </p>
                     </div>
                     <button class="btn btn-primary" onclick="AdminApp.showEditor('new')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        New Post
+                        新建文章
                     </button>
                 </div>
                 <div class="admin-post-list" id="admin-post-list">
@@ -104,101 +95,96 @@
                 </div>
             </div>
 
-            <!-- ── Post Editor View ────────────────────────────────────────── -->
             <div id="view-post-editor" class="admin-view" style="display: none;">
                 <div class="admin-header">
-                    <h2 id="editor-title">New Post</h2>
+                    <h2 id="editor-title">新建文章</h2>
                     <button class="btn btn-ghost" onclick="AdminApp.showView('posts-list')">
-                        ← Back to Posts
+                        ← 返回文章列表
                     </button>
                 </div>
 
                 <div class="form-group">
-                    <label for="post-title">Title</label>
-                    <input type="text" id="post-title" placeholder="Enter post title...">
+                    <label for="post-title">标题</label>
+                    <input type="text" id="post-title" placeholder="输入文章标题...">
                 </div>
 
                 <div class="editor-grid">
                     <div>
                         <div class="form-group">
-                            <label for="post-content">Content (Markdown)</label>
-                            <textarea id="post-content" class="editor-content" placeholder="Write your post in Markdown..." oninput="AdminApp.updatePreview()"></textarea>
+                            <label for="post-content">正文（Markdown）</label>
+                            <textarea id="post-content" class="editor-content" placeholder="用 Markdown 编写你的文章..." oninput="AdminApp.updatePreview()"></textarea>
                         </div>
                     </div>
                     <div>
-                        <label>Live Preview</label>
+                        <label>实时预览</label>
                         <div class="editor-preview" id="post-preview">
-                            <p style="color: var(--text-dim);">Preview will appear here...</p>
+                            <p style="color: var(--text-dim);">预览将显示在这里...</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="editor-grid">
                     <div class="form-group">
-                        <label for="post-tags">Tags (comma-separated)</label>
-                        <input type="text" id="post-tags" placeholder="e.g. technology, design, web">
+                        <label for="post-tags">标签（用逗号分隔）</label>
+                        <input type="text" id="post-tags" placeholder="例如：技术, 设计, Web">
                     </div>
                     <div class="form-group">
-                        <label for="post-excerpt">Excerpt (optional, auto-generated if empty)</label>
-                        <input type="text" id="post-excerpt" placeholder="Short summary of the post...">
+                        <label for="post-excerpt">摘要（可选，留空则自动生成）</label>
+                        <input type="text" id="post-excerpt" placeholder="文章的简短摘要...">
                     </div>
                 </div>
 
                 <div class="form-group" style="max-width: 200px;">
-                    <label for="post-date">Date</label>
+                    <label for="post-date">日期</label>
                     <input type="date" id="post-date">
                 </div>
 
                 <div class="editor-actions">
                     <button class="btn btn-danger" id="delete-btn" style="display: none; margin-right: auto;" onclick="AdminApp.deleteCurrentPost()">
-                        Delete Post
+                        删除文章
                     </button>
-                    <button class="btn" onclick="AdminApp.showView('posts-list')">Cancel</button>
+                    <button class="btn" onclick="AdminApp.showView('posts-list')">取消</button>
                     <button class="btn btn-primary" id="save-btn" onclick="AdminApp.savePost()">
-                        Save & Publish
+                        保存并发布
                     </button>
                 </div>
             </div>
 
-            <!-- ── Settings View ───────────────────────────────────────────── -->
             <div id="view-settings" class="admin-view" style="display: none;">
                 <div class="admin-header">
-                    <h2>Settings</h2>
+                    <h2>设置</h2>
                 </div>
 
-                <!-- Storage Mode -->
                 <div class="settings-card">
-                    <h3>Storage Mode</h3>
-                    <p>"GitHub" mode publishes directly to your repository via the Worker (requires GitHub login). "Local" mode stores posts in your browser only — useful for drafting.</p>
+                    <h3>存储模式</h3>
+                    <p>"GitHub" 模式通过 Worker 直接发布到你的仓库（需要 GitHub 登录）。"本地" 模式仅将文章存储在浏览器中 — 适合草稿编写。</p>
 
                     <div class="form-group">
-                        <label for="storage-mode">Current Mode</label>
+                        <label for="storage-mode">当前模式</label>
                         <select id="storage-mode-select" onchange="AdminApp.changeStorageMode(this.value)">
-                            <option value="github">GitHub Repository (publishes live)</option>
-                            <option value="local">Local Storage (browser only, for drafts)</option>
+                            <option value="github">GitHub 仓库（发布上线）</option>
+                            <option value="local">本地存储（仅浏览器，用于草稿）</option>
                         </select>
                     </div>
 
                     <p style="font-size: 0.8rem; color: var(--text-dim);">
-                        Currently using: <span class="storage-badge" id="settings-storage-badge">GitHub</span>
+                        当前使用：<span class="storage-badge" id="settings-storage-badge">GitHub</span>
                     </p>
                 </div>
 
-                <!-- Authentication Info -->
                 <div class="settings-card">
-                    <h3>Authentication</h3>
-                    <p>Admin access is secured via GitHub OAuth. Only the authorized GitHub account can login. No passwords are stored in the frontend.</p>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">To change the authorized user, update the <code style="color: var(--accent);">ALLOWED_USER</code> environment variable in your Cloudflare Worker.</p>
+                    <h3>认证</h3>
+                    <p>管理后台通过 GitHub OAuth 进行安全认证。只有授权的 GitHub 账号可以登录。前端不存储任何密码。</p>
+                    <p style="font-size: 0.8rem; color: var(--text-dim);">如需更改授权用户，请更新 Cloudflare Worker 中的 <code style="color: var(--accent);">ALLOWED_USER</code> 环境变量。</p>
                 </div>
 
-                <!-- Export / Import (Local mode) -->
                 <div class="settings-card">
-                    <h3>Data Management</h3>
-                    <p>Export your local posts as a JSON file, or import posts from a previously exported file.</p>
+                    <h3>数据管理</h3>
+                    <p>将本地文章导出为 JSON 文件，或从之前导出的文件导入文章。</p>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-sm" onclick="AdminApp.exportData()">Export Posts</button>
+                        <button class="btn btn-sm" onclick="AdminApp.exportData()">导出文章</button>
                         <label class="btn btn-sm" style="cursor: pointer;">
-                            Import Posts
+                            导入文章
                             <input type="file" accept=".json" style="display: none;" onchange="AdminApp.importData(event)">
                         </label>
                     </div>
@@ -208,13 +194,11 @@
         </main>
     </div>
 
-    <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-    <script src="/js/config.js?v=20260804b"></script>
-    <script src="/js/admin.js?v=20260804b"></script>
+    <script src="/js/config.js?v=20260804c"></script>
+    <script src="/js/admin.js?v=20260804c"></script>
 </body>
 </html>
