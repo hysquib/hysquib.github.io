@@ -313,8 +313,6 @@ const AdminApp = {
         }
 
         if (res.status === 404) {
-            // NOTE: If public site has posts but Worker returns 404,
-            // the Worker POSTS_FILE_PATH / GITHUB_REPO env vars are misconfigured.
             throw new Error(
                 'Worker 返回 404：找不到文章文件。请检查 Cloudflare Worker 环境变量是否正确：\n' +
                 '• POSTS_FILE_PATH 应为 "data/posts.json"\n' +
@@ -333,8 +331,6 @@ const AdminApp = {
         this.posts = data.posts || [];
         this.fileSha = data.sha || null;
 
-        // Diagnostic: if posts came back empty but file exists, warn about
-        // possible Worker env var mismatch
         if (this.posts.length === 0 && data.sha) {
             console.warn('[Admin] posts.json loaded via Worker but contains 0 posts. ' +
                          'Check that Worker POSTS_FILE_PATH matches the actual repo file.');
@@ -521,12 +517,26 @@ const AdminApp = {
         if (!container) return;
 
         if (this.posts.length === 0) {
+            const storageMode = this.getStorageMode();
+            const fileNotFound = storageMode === 'github' && !this.fileSha;
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--text-dim);">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">暂无文章</h3>
                     <p style="font-size: 0.85rem; margin-bottom: 1rem;">创建你的第一篇博客文章吧。</p>
                     <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">创建文章</button>
+                    ${fileNotFound ? `
+                    <div style="max-width: 560px; margin: 2rem auto 0; text-align: left; padding: 1rem; border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.08); border-radius: 8px; color: #92400e; font-size: 0.85rem; line-height: 1.6;">
+                        <div style="font-weight: 600; margin-bottom: 0.3rem;">⚠️ Worker 未读取到 posts.json 文件</div>
+                        如果公网首页已经能显示文章，但管理后台这里为空，说明 Cloudflare Worker 的环境变量配置有误。<br>
+                        请去 Cloudflare Worker 面板检查 <b>Settings → Variables</b>，确保这三项的值正确：
+                        <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; list-style: disc;">
+                            <li><b>POSTS_FILE_PATH</b> → <code style="color: #92400e; background: rgba(146, 64, 14, 0.08); padding: 0 4px; border-radius: 4px;">data/posts.json</code></li>
+                            <li><b>GITHUB_REPO</b> → <code style="color: #92400e; background: rgba(146, 64, 14, 0.08); padding: 0 4px; border-radius: 4px;">hysquib/hysquib.github.io</code></li>
+                            <li><b>GITHUB_BRANCH</b> → <code style="color: #92400e; background: rgba(146, 64, 14, 0.08); padding: 0 4px; border-radius: 4px;">main</code></li>
+                        </ul>
+                        改完后一定要点击 <b>Save and Deploy</b> 重新部署 Worker，然后刷新本页。
+                    </div>` : ''}
                 </div>
             `;
             return;
