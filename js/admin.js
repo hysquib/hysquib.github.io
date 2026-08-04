@@ -76,11 +76,11 @@ const AdminApp = {
         const error = params.get('error');
         if (error) {
             const messages = {
-                'state_mismatch': 'Security check failed. Please try again.',
-                'token_failed':   'GitHub authentication failed. Please try again.',
-                'forbidden':      'You are not authorized to access this panel.',
+                'state_mismatch': '安全验证失败，请重试。',
+                'token_failed':   'GitHub 认证失败，请重试。',
+                'forbidden':      '你没有权限访问此管理面板。',
             };
-            this._oauthError = messages[error] || 'Authentication error. Please try again.';
+            this._oauthError = messages[error] || '认证错误，请重试。';
             window.history.replaceState({}, '', '/admin.html');
         }
     },
@@ -108,7 +108,7 @@ const AdminApp = {
                 this._showLoginView();
             }
         } catch {
-            this._showLoginView('Cannot connect to authentication server.');
+            this._showLoginView('无法连接到认证服务器。');
         }
     },
 
@@ -178,12 +178,12 @@ const AdminApp = {
         if (mode === 'edit' && postId) {
             const post = this.posts.find(p => p.id === postId);
             if (!post) {
-                this.showToast('Post not found', 'error');
+                this.showToast('文章未找到', 'error');
                 this.showView('posts-list');
                 return;
             }
             this.editingPostId = postId;
-            titleEl.textContent = 'Edit Post';
+            titleEl.textContent = '编辑文章';
             deleteBtn.style.display = 'inline-flex';
 
             document.getElementById('post-title').value = post.title || '';
@@ -193,7 +193,7 @@ const AdminApp = {
             document.getElementById('post-date').value = post.date || '';
         } else {
             this.editingPostId = null;
-            titleEl.textContent = 'New Post';
+            titleEl.textContent = '新建文章';
             deleteBtn.style.display = 'none';
 
             document.getElementById('post-title').value = '';
@@ -219,7 +219,7 @@ const AdminApp = {
     changeStorageMode(mode) {
         localStorage.setItem(this.STORAGE_KEY, mode);
         this.updateStorageBadges();
-        this.showToast(`Switched to ${mode === 'github' ? 'GitHub' : 'Local'} storage mode`, 'success');
+        this.showToast(`已切换到${mode === 'github' ? 'GitHub' : '本地'}存储模式`, 'success');
         this.loadPosts();
     },
 
@@ -230,7 +230,7 @@ const AdminApp = {
 
         [badge1, badge2].forEach(badge => {
             if (!badge) return;
-            badge.textContent = mode === 'github' ? 'GitHub' : 'Local';
+            badge.textContent = mode === 'github' ? 'GitHub' : '本地';
             badge.classList.toggle('local', mode === 'local');
         });
     },
@@ -255,7 +255,7 @@ const AdminApp = {
         } catch (err) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--danger);">
-                    <p style="margin-bottom: 0.5rem;">Failed to load posts</p>
+                    <p style="margin-bottom: 0.5rem;">加载文章失败</p>
                     <p style="font-size: 0.85rem; color: var(--text-dim);">${this.escapeHtml(err.message)}</p>
                 </div>
             `;
@@ -279,7 +279,7 @@ const AdminApp = {
 
     async loadPostsFromGitHub() {
         if (!this._authToken) {
-            throw new Error('Not authenticated. Please login.');
+            throw new Error('未认证，请登录。');
         }
 
         const res = await fetch(`${CONFIG.WORKER_URL}/api/posts`, {
@@ -290,7 +290,7 @@ const AdminApp = {
             sessionStorage.removeItem(this.TOKEN_KEY);
             this._authToken = null;
             this._authenticated = false;
-            this._showLoginView('Session expired. Please login again.');
+            this._showLoginView('会话已过期，请重新登录。');
             throw new Error('Session expired');
         }
 
@@ -329,7 +329,7 @@ const AdminApp = {
 
     async savePostsToGitHub() {
         if (!this._authToken) {
-            throw new Error('Not authenticated. Please login.');
+            throw new Error('未认证，请登录。');
         }
 
         const body = {
@@ -353,7 +353,7 @@ const AdminApp = {
             sessionStorage.removeItem(this.TOKEN_KEY);
             this._authToken = null;
             this._authenticated = false;
-            this._showLoginView('Session expired. Please login again.');
+            this._showLoginView('会话已过期，请重新登录。');
             throw new Error('Session expired');
         }
 
@@ -367,7 +367,7 @@ const AdminApp = {
     },
 
     getEditingTitle() {
-        return document.getElementById('post-title').value || 'Untitled';
+        return document.getElementById('post-title').value || '无标题';
     },
 
     // ── Post CRUD ────────────────────────────────────────────────────────────
@@ -380,12 +380,12 @@ const AdminApp = {
         const date = document.getElementById('post-date').value || new Date().toISOString().split('T')[0];
 
         if (!title) {
-            this.showToast('Please enter a title', 'error');
+            this.showToast('请输入标题', 'error');
             document.getElementById('post-title').focus();
             return;
         }
         if (!content) {
-            this.showToast('Please enter some content', 'error');
+            this.showToast('请输入正文内容', 'error');
             document.getElementById('post-content').focus();
             return;
         }
@@ -398,7 +398,7 @@ const AdminApp = {
 
         const btn = document.getElementById('save-btn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Saving...';
+        btn.innerHTML = '<span class="spinner"></span> 保存中...';
 
         try {
             if (this.editingPostId) {
@@ -437,33 +437,33 @@ const AdminApp = {
             await this.savePosts();
 
             this.showToast(
-                this.editingPostId ? 'Post updated successfully!' : 'Post published successfully!',
+                this.editingPostId ? '文章更新成功！' : '文章发布成功！',
                 'success'
             );
 
             this.showView('posts-list');
         } catch (err) {
-            this.showToast(`Save failed: ${err.message}`, 'error');
+            this.showToast(`保存失败：${err.message}`, 'error');
         }
 
         btn.disabled = false;
-        btn.textContent = 'Save & Publish';
+        btn.textContent = '保存并发布';
     },
 
     async deleteCurrentPost() {
         if (!this.editingPostId) return;
 
-        if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) {
+        if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
             return;
         }
 
         try {
             this.posts = this.posts.filter(p => p.id !== this.editingPostId);
             await this.savePosts();
-            this.showToast('Post deleted', 'success');
+            this.showToast('文章已删除', 'success');
             this.showView('posts-list');
         } catch (err) {
-            this.showToast(`Delete failed: ${err.message}`, 'error');
+            this.showToast(`删除失败：${err.message}`, 'error');
         }
     },
 
@@ -471,15 +471,15 @@ const AdminApp = {
         const post = this.posts.find(p => p.id === postId);
         if (!post) return;
 
-        if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) return;
+        if (!confirm(`删除「${post.title}」？此操作不可撤销。`)) return;
 
         try {
             this.posts = this.posts.filter(p => p.id !== postId);
             await this.savePosts();
-            this.showToast('Post deleted', 'success');
+            this.showToast('文章已删除', 'success');
             this.renderPostList();
         } catch (err) {
-            this.showToast(`Delete failed: ${err.message}`, 'error');
+            this.showToast(`删除失败：${err.message}`, 'error');
         }
     },
 
@@ -493,9 +493,9 @@ const AdminApp = {
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--text-dim);">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">No posts yet</h3>
-                    <p style="font-size: 0.85rem; margin-bottom: 1rem;">Create your first blog post to get started.</p>
-                    <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">Create Post</button>
+                    <h3 style="color: var(--text-muted); margin-bottom: 0.3rem;">暂无文章</h3>
+                    <p style="font-size: 0.85rem; margin-bottom: 1rem;">创建你的第一篇博客文章吧。</p>
+                    <button class="btn btn-primary btn-sm" onclick="AdminApp.showEditor('new')">创建文章</button>
                 </div>
             `;
             return;
@@ -511,13 +511,13 @@ const AdminApp = {
                     </div>
                 </div>
                 <div class="admin-post-actions">
-                    <a href="/post.html?id=${encodeURIComponent(post.id)}" target="_blank" class="icon-btn" title="View post">
+                    <a href="/post.html?id=${encodeURIComponent(post.id)}" target="_blank" class="icon-btn" title="查看文章">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
-                    <button class="icon-btn" title="Edit" onclick="AdminApp.showEditor('edit', '${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn" title="编辑" onclick="AdminApp.showEditor('edit', '${this.escapeHtml(post.id)}')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="icon-btn danger" title="Delete" onclick="AdminApp.deletePost('${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn danger" title="删除" onclick="AdminApp.deletePost('${this.escapeHtml(post.id)}')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                 </div>
@@ -532,7 +532,7 @@ const AdminApp = {
         const preview = document.getElementById('post-preview');
 
         if (!content.trim()) {
-            preview.innerHTML = '<p style="color: var(--text-dim);">Preview will appear here...</p>';
+            preview.innerHTML = '<p style="color: var(--text-dim);">预览将显示在这里...</p>';
             return;
         }
 
@@ -559,7 +559,7 @@ const AdminApp = {
         a.download = `blog-posts-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        this.showToast('Posts exported', 'success');
+        this.showToast('文章已导出', 'success');
     },
 
     async importData(event) {
@@ -570,19 +570,19 @@ const AdminApp = {
             const text = await file.text();
             const data = JSON.parse(text);
             if (!data.posts || !Array.isArray(data.posts)) {
-                throw new Error('Invalid file format');
+                throw new Error('文件格式无效');
             }
 
-            if (!confirm(`Import ${data.posts.length} posts? This will replace your current local posts.`)) {
+            if (!confirm(`导入 ${data.posts.length} 篇文章？这将替换当前的本地文章。`)) {
                 return;
             }
 
             this.posts = data.posts;
             this.savePostsToLocal();
             this.renderPostList();
-            this.showToast(`Imported ${data.posts.length} posts`, 'success');
+            this.showToast(`已导入 ${data.posts.length} 篇文章`, 'success');
         } catch (err) {
-            this.showToast(`Import failed: ${err.message}`, 'error');
+            this.showToast(`导入失败：${err.message}`, 'error');
         }
 
         event.target.value = '';
@@ -621,7 +621,7 @@ const AdminApp = {
 
     formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
