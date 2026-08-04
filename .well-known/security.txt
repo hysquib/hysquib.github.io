@@ -1,0 +1,4 @@
+Contact: mailto:hello@hysquib.cn
+Expires: 2027-08-04T00:00:00.000Z
+Preferred-Languages: en, zh
+Policy: https://blog.hysquib.cn/

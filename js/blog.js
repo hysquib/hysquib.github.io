@@ -1,36 +1,36 @@
 /**
- * BlogApp — 博客前台渲染逻辑
- * 负责获取文章数据，并在首页、博客列表页和文章详情页进行渲染。
+ * BlogApp — Public blog rendering logic
+ * Handles fetching posts and rendering them on homepage, blog list, and single post pages.
  */
 
 const BlogApp = {
 
     /**
-     * 从 JSON 数据文件获取所有文章。
-     * @returns {Promise<Array>} 按日期倒序排列的文章数组
+     * Fetch all posts from the JSON data file.
+     * @returns {Promise<Array>} Sorted array of post objects
      */
     async fetchPosts() {
         try {
-            // 添加时间戳参数，确保 GitHub Pages 重建后获取最新内容
+            // Cache-busting query param to ensure fresh content after GitHub Pages rebuild
             const url = `/data/posts.json?t=${Date.now()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             const posts = data.posts || [];
-            // 按日期倒序排列（最新在前）
+            // Sort by date descending (newest first)
             return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
         } catch (err) {
-            console.error('获取文章失败:', err);
+            console.error('Failed to fetch posts:', err);
             return [];
         }
     },
 
     /**
-     * 将 ISO 日期字符串格式化为完整中文格式。
+     * Format an ISO date string into a human-readable format.
      */
     formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('zh-CN', {
+        return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -38,28 +38,27 @@ const BlogApp = {
     },
 
     /**
-     * 短日期格式（用于文章卡片）。
+     * Format date short (for post cards).
      */
     formatDateShort(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('zh-CN', {
-            year: 'numeric',
+        return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
+            year: 'numeric',
         });
     },
 
     /**
-     * 根据内容估算阅读时间。
+     * Estimate reading time from markdown content.
      */
     readingTime(content) {
-        // 中文按字符数估算，约 300 字/分钟
-        const chars = content.replace(/\s/g, '').length;
-        return Math.max(1, Math.ceil(chars / 300));
+        const words = content.trim().split(/\s+/).length;
+        return Math.max(1, Math.ceil(words / 200));
     },
 
     /**
-     * HTML 转义，防止 XSS。
+     * Escape HTML to prevent XSS in user-generated content titles/excerpts.
      */
     escapeHtml(str) {
         const div = document.createElement('div');
@@ -68,7 +67,7 @@ const BlogApp = {
     },
 
     /**
-     * 生成单篇文章卡片的 HTML。
+     * Generate HTML for a single post card.
      */
     postCardHTML(post) {
         const tags = (post.tags || [])
@@ -86,7 +85,7 @@ const BlogApp = {
     },
 
     /**
-     * 渲染最新 N 篇文章（用于首页）。
+     * Render the latest N posts (for homepage).
      */
     async renderLatestPosts(containerId, count = 3) {
         const container = document.getElementById(containerId);
@@ -98,8 +97,8 @@ const BlogApp = {
         if (latest.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>暂无文章</h3>
-                    <p>敬请期待新内容。</p>
+                    <h3>No posts yet</h3>
+                    <p>Check back soon for new content.</p>
                 </div>
             `;
             return;
@@ -111,7 +110,7 @@ const BlogApp = {
     },
 
     /**
-     * 渲染所有文章（用于博客列表页）。
+     * Render all posts (for blog listing page).
      */
     async renderAllPosts(containerId) {
         const container = document.getElementById(containerId);
@@ -122,8 +121,8 @@ const BlogApp = {
         if (posts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>暂无文章</h3>
-                    <p>敬请期待新内容。</p>
+                    <h3>No posts yet</h3>
+                    <p>Check back soon for new content.</p>
                 </div>
             `;
             return;
@@ -135,7 +134,7 @@ const BlogApp = {
     },
 
     /**
-     * 渲染单篇文章（用于 post.html，从 URL 读取 ?id=）。
+     * Render a single post (for post.html, reads ?id= from URL).
      */
     async renderSinglePost(containerId) {
         const container = document.getElementById(containerId);
@@ -147,8 +146,8 @@ const BlogApp = {
         if (!postId) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>文章未找到</h3>
-                    <p>未指定文章 ID。<a href="/blog.html" style="color: var(--accent);">浏览所有文章 →</a></p>
+                    <h3>Post not found</h3>
+                    <p>No post ID specified. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
                 </div>
             `;
             return;
@@ -160,26 +159,30 @@ const BlogApp = {
         if (!post) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>文章未找到</h3>
-                    <p>该文章不存在或可能已被删除。<a href="/blog.html" style="color: var(--accent);">浏览所有文章 →</a></p>
+                    <h3>Post not found</h3>
+                    <p>This post doesn't exist or may have been removed. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
                 </div>
             `;
             return;
         }
 
-        // 设置页面标题
+        // Set page title
         document.title = `${post.title} — hysquib`;
 
-        // 查找相邻文章用于导航
+        // Find adjacent posts for navigation
         const index = posts.indexOf(post);
-        const prevPost = posts[index + 1]; // 更早的文章（倒序排列）
-        const nextPost = posts[index - 1]; // 更新的文章
+        const prevPost = posts[index + 1]; // older (since sorted desc)
+        const nextPost = posts[index - 1]; // newer
 
-        // 解析 Markdown
+        // Parse markdown
         let contentHTML;
         if (typeof marked !== 'undefined') {
             marked.setOptions({ breaks: true, gfm: true });
             contentHTML = marked.parse(post.content || '');
+            // Sanitize output to prevent XSS
+            if (typeof DOMPurify !== 'undefined') {
+                contentHTML = DOMPurify.sanitize(contentHTML);
+            }
         } else {
             contentHTML = `<p>${this.escapeHtml(post.content || '')}</p>`;
         }
@@ -193,7 +196,7 @@ const BlogApp = {
                 <div class="post-view-meta">
                     <span>${this.formatDate(post.date)}</span>
                     <span class="dot"></span>
-                    <span>阅读约 ${this.readingTime(post.content)} 分钟</span>
+                    <span>${this.readingTime(post.content)} min read</span>
                 </div>
                 <h1>${this.escapeHtml(post.title)}</h1>
                 ${tags ? `<div class="post-view-tags">${tags}</div>` : ''}
@@ -211,7 +214,7 @@ const BlogApp = {
             </nav>
         `;
 
-        // 滚动到顶部
+        // Scroll to top
         window.scrollTo(0, 0);
     },
 };

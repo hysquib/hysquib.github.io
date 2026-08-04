@@ -1,42 +1,38 @@
 /**
- * 站点配置
+ * Site Configuration
  * -----------------------------------------------------------------------------
- * 编辑此文件以自定义你的站点。修改后提交到 GitHub，GitHub Pages 会自动重新构建。
- *
- * 注意：站点的可见文案（首页 Hero、关于、导航标签等）可以通过管理台在线编辑，
- * 并保存在 data/site.json 中。此文件仅包含需要代码层面配置的项。
+ * Edit this file to customize your site. After changing, commit to GitHub
+ * and GitHub Pages will rebuild automatically.
  */
 
 const CONFIG = {
-    // ── 管理密码 ────────────────────────────────────────────────────────────
-    // 管理员登录密码的 SHA-256 哈希值。
-    // 当前密码为：Mty103015.
+    // ── Admin Password Hash ─────────────────────────────────────────────────
+    // SHA-256 hash of the admin login password (NOT stored as plaintext).
     //
-    // 修改密码的方法，在终端运行：
-    //   echo -n "你的新密码" | sha256sum
-    // 然后将输出的哈希值粘贴到下方。
+    // To set your own password:
+    //   1. Run in a terminal:
+    //        echo -n "your_password" | sha256sum
+    //   2. Paste the 64-character hex output below.
+    //   3. Commit & push to GitHub.
+    //
+    // NOTE: This is client-side authentication — it only prevents accidental
+    // access. For true write security, all changes require a GitHub PAT.
     PASSWORD_HASH: '04f449c3889bb43663231a12b5174cb178c9b53ab24eaf2ea2e46bcf7ebbd2cd',
 
-    // ── GitHub 仓库 ─────────────────────────────────────────────────────────
-    // 管理面板通过此配置将文章发布回你的仓库。
-    // 格式："所有者/仓库名"
+    // ── GitHub Repository ───────────────────────────────────────────────────
+    // Used by the admin panel to publish posts back to your repo.
     GITHUB_REPO: 'hysquib/hysquib.github.io',
-
-    // 提交博客文章修改的分支
     GITHUB_BRANCH: 'main',
-
-    // 仓库内文章 JSON 文件的路径
     POSTS_FILE_PATH: 'data/posts.json',
+    SITE_FILE_PATH: 'data/site.json',
 
-    // ── 站点身份 ────────────────────────────────────────────────────────────
+    // ── Site Identity ───────────────────────────────────────────────────────
     SITE_NAME: 'hysquib',
     SITE_AUTHOR: 'hysquib',
-    SITE_TAGLINE: '构建者 · 写作者 · 思考者',
-    SITE_DESCRIPTION: '关于技术、设计与构建有意义之物的个人思考。',
+    SITE_TAGLINE: 'Builder · Writer · Thinker',
+    SITE_DESCRIPTION: 'Personal thoughts on technology, design, and the craft of building things that matter.',
 
-    // ── 社交链接 ────────────────────────────────────────────────────────────
-    // 注意：社交链接现在通过管理台"站点内容"视图管理，保存在 data/site.json 中。
-    // 此处的值仅作为回退，不再用于前台渲染。
+    // ── Social Links ────────────────────────────────────────────────────────
     SOCIAL: {
         github:   'https://github.com/hysquib',
         twitter:  '',
@@ -44,6 +40,6 @@ const CONFIG = {
         rss:      '/data/posts.json',
     },
 
-    // ── 每页文章数 ──────────────────────────────────────────────────────────
+    // ── Posts per page ──────────────────────────────────────────────────────
     POSTS_PER_PAGE: 6,
 };
