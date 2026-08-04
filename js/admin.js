@@ -26,6 +26,24 @@ const AdminApp = {
 
     // ── Initialization ───────────────────────────────────────────────────────
     init() {
+        try {
+            this._initInternal();
+        } catch (err) {
+            console.error('Admin init error:', err);
+            const loginEl = document.getElementById('login-view');
+            if (loginEl) {
+                loginEl.innerHTML = `
+                    <div class="login-card" style="color: var(--danger); text-align: center;">
+                        <h2 style="margin-bottom: 1rem;">⚠️ 页面初始化失败</h2>
+                        <p style="font-size: 0.9rem; margin-bottom: 1rem;">错误：${this.escapeHtml(err.message)}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-dim);">请尝试强制刷新（Ctrl+Shift+R）或使用无痕模式打开。</p>
+                        <button class="btn btn-primary" style="margin-top: 1rem;" onclick="location.reload(true)">重新加载</button>
+                    </div>`;
+            }
+        }
+    },
+
+    _initInternal() {
         // Login button — redirects to Worker OAuth
         document.getElementById('login-btn').addEventListener('click', () => {
             this.loginWithGitHub();
@@ -308,6 +326,13 @@ const AdminApp = {
         const data = await res.json();
         this.posts = data.posts || [];
         this.fileSha = data.sha || null;
+
+        // Diagnostic: if posts came back empty but file exists, warn about
+        // possible Worker env var mismatch
+        if (this.posts.length === 0 && data.sha) {
+            console.warn('[Admin] posts.json loaded via Worker but contains 0 posts. ' +
+                         'Check that Worker POSTS_FILE_PATH matches the actual repo file.');
+        }
     },
 
     // ── Save Posts ───────────────────────────────────────────────────────────
@@ -652,5 +677,11 @@ const AdminApp = {
     },
 };
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => AdminApp.init());
+// Initialize on page load (with global fallback error shield)
+(function bootstrap() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => AdminApp.init());
+    } else {
+        AdminApp.init();
+    }
+})();

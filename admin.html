@@ -19,10 +19,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/style.css?v=20260804c">
+    <link rel="stylesheet" href="/css/style.css?v=20260804d">
 </head>
 <body class="admin-body">
 
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: #b91c1c; color: #fff;
+                    padding: 1rem; text-align: center; z-index: 99999; font-family: sans-serif;">
+            ⚠️ 管理后台需要启用 JavaScript 才能正常运行。请在浏览器设置中允许 JavaScript 后刷新页面。
+        </div>
+    </noscript>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         登录界面
+         ═══════════════════════════════════════════════════════════════════════ -->
     <div id="login-view" class="admin-login">
         <div class="login-card">
             <div class="login-icon">
@@ -41,8 +51,12 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         控制台界面（认证后显示）
+         ═══════════════════════════════════════════════════════════════════════ -->
     <div id="dashboard-view" class="admin-layout" style="display: none;">
 
+        <!-- 侧边栏 -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-logo">hysquib<span>.</span> <span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-body);">管理</span></div>
 
@@ -73,8 +87,10 @@
             </div>
         </aside>
 
+        <!-- 主内容区 -->
         <main class="admin-main">
 
+            <!-- ── 文章列表视图 ─────────────────────────────────────────── -->
             <div id="view-posts-list" class="admin-view">
                 <div class="admin-header">
                     <div>
@@ -95,6 +111,7 @@
                 </div>
             </div>
 
+            <!-- ── 文章编辑器视图 ────────────────────────────────────────── -->
             <div id="view-post-editor" class="admin-view" style="display: none;">
                 <div class="admin-header">
                     <h2 id="editor-title">新建文章</h2>
@@ -150,11 +167,13 @@
                 </div>
             </div>
 
+            <!-- ── 设置视图 ───────────────────────────────────────────── -->
             <div id="view-settings" class="admin-view" style="display: none;">
                 <div class="admin-header">
                     <h2>设置</h2>
                 </div>
 
+                <!-- 存储模式 -->
                 <div class="settings-card">
                     <h3>存储模式</h3>
                     <p>"GitHub" 模式通过 Worker 直接发布到你的仓库（需要 GitHub 登录）。"本地" 模式仅将文章存储在浏览器中 — 适合草稿编写。</p>
@@ -172,12 +191,14 @@
                     </p>
                 </div>
 
+                <!-- 认证信息 -->
                 <div class="settings-card">
                     <h3>认证</h3>
                     <p>管理后台通过 GitHub OAuth 进行安全认证。只有授权的 GitHub 账号可以登录。前端不存储任何密码。</p>
                     <p style="font-size: 0.8rem; color: var(--text-dim);">如需更改授权用户，请更新 Cloudflare Worker 中的 <code style="color: var(--accent);">ALLOWED_USER</code> 环境变量。</p>
                 </div>
 
+                <!-- 导出 / 导入（本地模式） -->
                 <div class="settings-card">
                     <h3>数据管理</h3>
                     <p>将本地文章导出为 JSON 文件，或从之前导出的文件导入文章。</p>
@@ -194,11 +215,13 @@
         </main>
     </div>
 
+    <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-    <script src="/js/config.js?v=20260804c"></script>
-    <script src="/js/admin.js?v=20260804c"></script>
+    <script src="/js/config.js?v=20260804d"></script>
+    <script src="/js/admin.js?v=20260804d"></script>
 </body>
 </html>
