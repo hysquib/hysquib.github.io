@@ -274,7 +274,7 @@ const AdminApp = {
             container.innerHTML = `
                 <div style="text-align: center; padding: 3rem; color: var(--danger);">
                     <p style="margin-bottom: 0.5rem;">加载文章失败</p>
-                    <p style="font-size: 0.85rem; color: var(--text-dim);">${this.escapeHtml(err.message)}</p>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); white-space: pre-line; line-height: 1.6;">${this.escapeHtml(err.message)}</p>
                 </div>
             `;
         }
@@ -313,9 +313,15 @@ const AdminApp = {
         }
 
         if (res.status === 404) {
-            this.posts = [];
-            this.fileSha = null;
-            return;
+            // NOTE: If public site has posts but Worker returns 404,
+            // the Worker POSTS_FILE_PATH / GITHUB_REPO env vars are misconfigured.
+            throw new Error(
+                'Worker 返回 404：找不到文章文件。请检查 Cloudflare Worker 环境变量是否正确：\n' +
+                '• POSTS_FILE_PATH 应为 "data/posts.json"\n' +
+                '• GITHUB_REPO 应为 "hysquib/hysquib.github.io"\n' +
+                '• GITHUB_BRANCH 应为 "main"\n' +
+                '修改后需点击 "Save and Deploy" 重新部署 Worker。'
+            );
         }
 
         if (!res.ok) {
