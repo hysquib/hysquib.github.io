@@ -18,8 +18,8 @@ const CONFIG = {
     // ── Site Identity ───────────────────────────────────────────────────────
     SITE_NAME: 'hysquib',
     SITE_AUTHOR: 'hysquib',
-    SITE_TAGLINE: 'Builder · Writer · Thinker',
-    SITE_DESCRIPTION: 'Personal thoughts on technology, design, and the craft of building things that matter.',
+    SITE_TAGLINE: '构建者 · 写作者 · 思考者',
+    SITE_DESCRIPTION: '关于技术、设计和构建有意义事物的个人思考。',
 
     // ── Social Links ────────────────────────────────────────────────────────
     SOCIAL: {
