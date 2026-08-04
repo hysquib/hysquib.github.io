@@ -8,7 +8,7 @@
     <meta name="googlebot" content="noindex, nofollow, noarchive">
 
     <!-- Security Headers (meta tag fallback for GitHub Pages static hosting) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*; connect-src 'self' https://api.github.com; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*; connect-src 'self' https://api.github.com https://*.workers.dev; frame-ancestors 'none';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/css/style.css?v=20260804">
+    <link rel="stylesheet" href="/css/style.css?v=20260804b">
 </head>
 <body class="admin-body">
 
@@ -29,24 +29,18 @@
     <div id="login-view" class="admin-login">
         <div class="login-card">
             <div class="login-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
                 </svg>
             </div>
             <h1>Admin Panel</h1>
-            <p>Enter your password to manage blog posts.</p>
+            <p>Sign in with GitHub to manage your blog posts.</p>
 
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" autofocus>
-                    <p class="form-error" id="login-error">Incorrect password. Please try again.</p>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="login-btn">
-                    Unlock Dashboard
-                </button>
-            </form>
+            <button class="btn btn-primary" id="login-btn" style="width: 100%; justify-content: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                Login with GitHub
+            </button>
+            <p class="form-error" id="login-error"></p>
         </div>
     </div>
 
@@ -95,7 +89,7 @@
                     <div>
                         <h2>Blog Posts</h2>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">
-                            Storage: <span class="storage-badge" id="storage-mode-badge">local</span>
+                            Storage: <span class="storage-badge" id="storage-mode-badge">GitHub</span>
                         </p>
                     </div>
                     <button class="btn btn-primary" onclick="AdminApp.showEditor('new')">
@@ -175,42 +169,26 @@
                 <!-- Storage Mode -->
                 <div class="settings-card">
                     <h3>Storage Mode</h3>
-                    <p>Choose how blog posts are stored. "GitHub" mode publishes directly to your repository (requires a Personal Access Token). "Local" mode stores posts in your browser only.</p>
+                    <p>"GitHub" mode publishes directly to your repository via the Worker (requires GitHub login). "Local" mode stores posts in your browser only — useful for drafting.</p>
 
                     <div class="form-group">
                         <label for="storage-mode">Current Mode</label>
                         <select id="storage-mode-select" onchange="AdminApp.changeStorageMode(this.value)">
-                            <option value="local">Local Storage (browser only)</option>
                             <option value="github">GitHub Repository (publishes live)</option>
+                            <option value="local">Local Storage (browser only, for drafts)</option>
                         </select>
                     </div>
 
                     <p style="font-size: 0.8rem; color: var(--text-dim);">
-                        Currently using: <span class="storage-badge" id="settings-storage-badge">local</span>
+                        Currently using: <span class="storage-badge" id="settings-storage-badge">GitHub</span>
                     </p>
                 </div>
 
-                <!-- GitHub Token -->
-                <div class="settings-card" id="github-token-card">
-                    <h3>GitHub Personal Access Token</h3>
-                    <p>Required for "GitHub" storage mode. Create a token at <a href="https://github.com/settings/tokens/new?scopes=repo&description=Blog%20Admin" target="_blank" style="color: var(--accent);">github.com/settings/tokens</a> with the <code style="color: var(--accent);">repo</code> scope. The token is stored only in this browser session (cleared when you close the tab).</p>
-
-                    <div class="form-group">
-                        <label for="github-token">Personal Access Token</label>
-                        <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx...">
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="AdminApp.saveGitHubToken()">Save Token</button>
-                </div>
-
-                <!-- Repository Info -->
+                <!-- Authentication Info -->
                 <div class="settings-card">
-                    <h3>Repository Configuration</h3>
-                    <p>These values are configured in <code style="color: var(--accent);">js/config.js</code>. Contact your site administrator to modify them.</p>
-                    <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 2;">
-                        <div><strong style="color: var(--text);">Repository:</strong> <span>—</span></div>
-                        <div><strong style="color: var(--text);">Branch:</strong> <span>—</span></div>
-                        <div><strong style="color: var(--text);">Posts File:</strong> <span>—</span></div>
-                    </div>
+                    <h3>Authentication</h3>
+                    <p>Admin access is secured via GitHub OAuth. Only the authorized GitHub account can login. No passwords are stored in the frontend.</p>
+                    <p style="font-size: 0.8rem; color: var(--text-dim);">To change the authorized user, update the <code style="color: var(--accent);">ALLOWED_USER</code> environment variable in your Cloudflare Worker.</p>
                 </div>
 
                 <!-- Export / Import (Local mode) -->
@@ -225,15 +203,6 @@
                         </label>
                     </div>
                 </div>
-
-                <!-- Change Password Info -->
-                <div class="settings-card">
-                    <h3>Change Admin Password</h3>
-                    <p>To change the admin password, edit <code style="color: var(--accent);">js/config.js</code> and update the <code style="color: var(--accent);">PASSWORD_HASH</code> value.</p>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Generate a new hash by running this in your terminal:</p>
-                    <pre style="background: var(--bg-elevated); padding: 0.8rem; border-radius: 4px; overflow-x: auto;"><code style="color: var(--text);">echo -n "your_new_password" | sha256sum</code></pre>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Then paste the output hash into the config file and commit to GitHub.</p>
-                </div>
             </div>
 
         </main>
@@ -245,7 +214,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-    <script src="/js/config.js?v=20260804"></script>
-    <script src="/js/admin.js?v=20260804"></script>
+    <script src="/js/config.js?v=20260804b"></script>
+    <script src="/js/admin.js?v=20260804b"></script>
 </body>
 </html>
