@@ -1,0 +1,22 @@
+name = "blog-admin-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 自定义域名 (Cloudflare Dashboard → Worker → Triggers → Custom Domains)
+# adminblog.hysquib.cn
+
+# KV 命名空间 — 存储通行密钥
+[[kv_namespaces]]
+binding = "PASSKEY_KV"
+id = "aef763a945a541788c1cfb312789055c"
+
+# 环境变量请在 Cloudflare Dashboard → Worker → Settings → Variables 中配置:
+#   GITHUB_TOKEN         (Secret)
+#   OAUTH_CLIENT_ID      (Text)
+#   OAUTH_CLIENT_SECRET  (Secret)
+#   SESSION_SECRET       (Secret)
+#   GITHUB_REPO          (Text)
+#   GITHUB_BRANCH        (Text)
+#   POSTS_FILE_PATH      (Text)
+#   BLOG_URL             (Text)
+#   ALLOWED_USER         (Text)
