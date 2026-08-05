@@ -1,48 +1,50 @@
 {
   "site": {
-    "name": "hysquib",
-    "tagline": "æå»ºè Â· åä½è Â· æèè",
-    "description": "å³äºææ¯ãè®¾è®¡ä¸æå»ºææä¹ä¹ç©çä¸ªäººæèã"
-  },
-  "hero": {
-    "greeting": "ä½ å¥½ï¼ææ¯",
-    "name": "hysquib",
-    "accent": "ç¨å¿æå»ºï¼ç¨ç±åäº«ã",
-    "tagline": "ä¸åç­ç±å¼æºä¸åä½çå¼åèï¼å¨è¿éè®°å½æçæèãå­¦ä¹ ä¸åé ã",
-    "primary_button_text": "æ¥çæçåå®¢",
-    "primary_button_link": "/blog.html",
-    "secondary_button_text": "å³äºæ",
-    "secondary_button_link": "#about"
-  },
-  "about": {
-    "label": "å³äºæ",
-    "paragraphs": [
-      "ææ¯ hysquib â ä¸åå·¥ç¨å¸ãæå»ºèï¼åæ¶ä¹æ¯ä¸ä¸ªåä½èã",
-      "æç¸ä¿¡å¥½çä½åæ¥èªå¯¹ç»èçæç£¨ï¼å¯¹ç¨æ·çå°éï¼ä»¥åæç»­ä¸æ­çå­¦ä¹ ã",
-      "è¿éæ¯æçä¸ªäººç©ºé´ï¼ç¨æ¥è®°å½ææ¯ç¬è®°ãé¡¹ç®æèåå¶å°çä¸ªäººéæ³ã"
-    ]
-  },
-  "sections": {
-    "latest_posts_eyebrow": "ææ°æç«",
-    "latest_posts_title": "è¿æåä½",
-    "latest_posts_link": "æ¥çå¨é¨ â",
-    "blog_eyebrow": "åå®¢",
-    "blog_title": "æææç«",
-    "blog_subtitle": "è®°å½æ³æ³ãåäº«ç»éªãçä¸æé¿çè¿¹ã"
+    "title": "hysquib — 构建者 · 写作者 · 思考者",
+    "description": "关于技术、设计和构建有意义事物的个人思考。",
+    "lang": "zh-CN"
   },
   "nav": {
-    "home": "é¦é¡µ",
-    "blog": "åå®¢",
-    "about": "å³äº",
-    "admin": "ç®¡ç"
+    "home": "首页",
+    "blog": "博客",
+    "about": "关于"
   },
-  "social": {
-    "github": "https://github.com/hysquib",
-    "twitter": "",
-    "email": "hysquib@icloud.com",
-    "rss": "/data/posts.json"
+  "hero": {
+    "greeting": "— 你好，我是",
+    "name": "hysquib",
+    "tagline": "一个构建事物的人。",
+    "description": "我写技术、设计和构建有意义事物的技艺。这是我的网络角落——一个存放想法、实验与真诚思考的地方。",
+    "ctaPrimary": "阅读博客",
+    "ctaSecondary": "关于我"
+  },
+  "about": {
+    "label": "关于",
+    "paragraphs": [
+      "我是一名开发者，相信优秀的软件构建在工程纪律与设计感性的交汇处。",
+      "白天，我构建系统。夜晚，我书写关于它们的思考——探索塑造我们为网络创造的想法、工具与哲学。",
+      "这个站点刻意简洁：静态文件，快速加载，持久耐用。不追踪，不膨胀，不喧嚣。只有文字与想法。"
+    ]
+  },
+  "home": {
+    "writingLabel": "写作",
+    "latestTitle": "最新文章",
+    "viewAll": "查看全部 →"
+  },
+  "blog": {
+    "pageTitle": "写作与想法",
+    "pageEyebrow": "博客",
+    "pageDescription": "关于技术、设计和构建有意义事物的思考。"
+  },
+  "post": {
+    "backLink": "返回博客",
+    "loading": "正在加载文章...",
+    "readingTime": "分钟阅读",
+    "notFound": "未找到文章",
+    "notFoundDesc": "这篇文章可能已被删除。",
+    "noId": "未指定文章 ID。",
+    "browseAll": "浏览全部文章 →"
   },
   "footer": {
-    "copyright_template": "Â© {year} hysquib. ç¨å¿æå»ºã"
+    "copyright": "用心构建。"
   }
 }

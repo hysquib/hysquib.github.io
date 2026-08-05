@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,8 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-    <title>hysquib — Builder · Writer · Thinker</title>
-    <meta name="description" content="Personal thoughts on technology, design, and the craft of building things that matter.">
+    <title>hysquib — 构建者 · 写作者 · 思考者</title>
+    <meta name="description" content="关于技术、设计和构建有意义事物的个人思考。">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,9 +25,9 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">hysquib<span>.</span></a>
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/blog.html">Blog</a></li>
-                <li><a href="/#about">About</a></li>
+                <li><a href="/" data-nav-home-text>首页</a></li>
+                <li><a href="/blog.html" data-nav-blog-text>博客</a></li>
+                <li><a href="/#about" data-nav-about-text>关于</a></li>
             </ul>
         </div>
     </nav>
@@ -37,15 +37,15 @@
         <div class="hero-bg"></div>
         <div class="container">
             <div class="hero-content">
-                <p class="hero-greeting">— Hello, I'm</p>
-                <h1>hysquib<br><span class="accent">a builder of things.</span></h1>
-                <p class="hero-tagline">I write about technology, design, and the craft of building things that matter. This is my corner of the internet — a place for ideas, experiments, and honest reflections.</p>
+                <p class="hero-greeting">— 你好，我是</p>
+                <h1><span class="hero-name">hysquib</span><br><span class="hero-tagline">一个构建事物的人。</span></h1>
+                <p class="hero-description">我写技术、设计和构建有意义事物的技艺。这是我的网络角落——一个存放想法、实验与真诚思考的地方。</p>
                 <div class="hero-actions">
-                    <a href="/blog.html" class="btn btn-primary">
-                        Read the Blog
+                    <a href="/blog.html" class="btn btn-primary hero-cta-primary">
+                        阅读博客
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="#about" class="btn">About Me</a>
+                    <a href="#about" class="btn hero-cta-secondary">关于我</a>
                 </div>
             </div>
         </div>
@@ -55,11 +55,11 @@
     <section class="section" id="about">
         <div class="container">
             <div class="about-grid reveal">
-                <div class="about-label">About</div>
+                <div class="about-label">关于</div>
                 <div class="about-text">
-                    <p>I'm a developer who believes that great software is built at the intersection of engineering discipline and design sensibility.</p>
-                    <p>By day, I build systems. By night, I write about them — exploring the ideas, tools, and philosophies that shape how we create for the web.</p>
-                    <p>This site is deliberately simple: static files, served fast, built to last. No tracking, no bloat, no noise. Just words and ideas.</p>
+                    <p>我是一名开发者，相信优秀的软件构建在工程纪律与设计感性的交汇处。</p>
+                    <p>白天，我构建系统。夜晚，我书写关于它们的思考——探索塑造我们为网络创造的想法、工具与哲学。</p>
+                    <p>这个站点刻意简洁：静态文件，快速加载，持久耐用。不追踪，不膨胀，不喧嚣。只有文字与想法。</p>
                 </div>
             </div>
         </div>
@@ -70,10 +70,10 @@
         <div class="container">
             <div class="section-header reveal">
                 <div>
-                    <span class="eyebrow">Writing</span>
-                    <h2>Latest Posts</h2>
+                    <span class="eyebrow section-eyebrow">写作</span>
+                    <h2 class="section-title">最新文章</h2>
                 </div>
-                <a href="/blog.html" class="section-link">View all →</a>
+                <a href="/blog.html" class="section-link">查看全部 →</a>
             </div>
             <div class="posts-grid" id="latest-posts">
                 <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
@@ -88,7 +88,7 @@
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-social" id="footer-social"></div>
-                <p class="footer-copy">© <span id="year"></span> hysquib. Built with intention.</p>
+                <p class="footer-copy"><span class="footer-copy-text">© <span id="year"></span> hysquib. 用心构建。</span></p>
             </div>
         </div>
     </footer>

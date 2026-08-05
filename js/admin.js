@@ -15,6 +15,7 @@ const AdminApp = {
 
     // ── 状态 ────────────────────────────────────────────────────────────────
     posts: [],
+    siteContent: null,
     editingPostId: null,
     fileSha: null,
 
@@ -231,6 +232,8 @@ const AdminApp = {
             this.updateStorageBadges();
         } else if (viewName === 'passkey') {
             this.checkPasskeyStatus();
+        } else if (viewName === 'site-content') {
+            this.loadSiteContent();
         }
     },
 
@@ -715,6 +718,202 @@ const AdminApp = {
             toast.style.transition = 'all 0.3s ease';
             setTimeout(() => toast.remove(), 300);
         }, 3500);
+    },
+
+    // ── 站点内容管理 ──────────────────────────────────────────────────────
+
+    async loadSiteContent() {
+        const loadingEl = document.getElementById('site-content-loading');
+        const editorEl = document.getElementById('site-content-editor');
+        if (!loadingEl) return;
+
+        loadingEl.style.display = 'block';
+        editorEl.style.display = 'none';
+
+        const token = this.getSessionToken();
+        if (!token) {
+            this.showToast('请先登录', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${CONFIG.WORKER_URL}/api/site`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (res.status === 401) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || '会话已过期，请重新登录。');
+            }
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || err.message || `加载失败：${res.status}`);
+            }
+
+            const data = await res.json();
+            this.siteContent = data;
+            this.populateSiteForm(data);
+
+            loadingEl.style.display = 'none';
+            editorEl.style.display = 'block';
+        } catch (err) {
+            loadingEl.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <p style="color: var(--danger); margin-bottom: 1rem;">加载失败：${this.escapeHtml(err.message)}</p>
+                    <button class="btn btn-primary" onclick="AdminApp.loadSiteContent()">重试</button>
+                </div>
+            `;
+        }
+    },
+
+    populateSiteForm(data) {
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        };
+
+        // 站点信息
+        setVal('site-title', data.site?.title);
+        setVal('site-description', data.site?.description);
+        setVal('site-lang', data.site?.lang);
+
+        // 导航
+        setVal('nav-home', data.nav?.home);
+        setVal('nav-blog', data.nav?.blog);
+        setVal('nav-about', data.nav?.about);
+
+        // Hero 区域
+        setVal('hero-greeting', data.hero?.greeting);
+        setVal('hero-name', data.hero?.name);
+        setVal('hero-tagline', data.hero?.tagline);
+        setVal('hero-description', data.hero?.description);
+        setVal('hero-cta-primary', data.hero?.ctaPrimary);
+        setVal('hero-cta-secondary', data.hero?.ctaSecondary);
+
+        // 关于页
+        setVal('about-label', data.about?.label);
+        setVal('about-paragraphs', (data.about?.paragraphs || []).join('\n'));
+
+        // 首页文章区域
+        setVal('home-writing', data.home?.writingLabel);
+        setVal('home-latest', data.home?.latestTitle);
+        setVal('home-view-all', data.home?.viewAll);
+
+        // 博客页
+        setVal('blog-title', data.blog?.pageTitle);
+        setVal('blog-eyebrow', data.blog?.pageEyebrow);
+        setVal('blog-desc', data.blog?.pageDescription);
+
+        // 文章详情页
+        setVal('post-back', data.post?.backLink);
+        setVal('post-loading', data.post?.loading);
+        setVal('post-reading', data.post?.readingTime);
+        setVal('post-not-found', data.post?.notFound);
+        setVal('post-not-found-desc', data.post?.notFoundDesc);
+        setVal('post-browse', data.post?.browseAll);
+
+        // 页脚
+        setVal('footer-copyright', data.footer?.copyright);
+    },
+
+    collectSiteForm() {
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        };
+
+        const paragraphs = getVal('about-paragraphs')
+            ? getVal('about-paragraphs').split('\n').filter(Boolean)
+            : [];
+
+        return {
+            site: {
+                title: getVal('site-title'),
+                description: getVal('site-description'),
+                lang: getVal('site-lang'),
+            },
+            nav: {
+                home: getVal('nav-home'),
+                blog: getVal('nav-blog'),
+                about: getVal('nav-about'),
+            },
+            hero: {
+                greeting: getVal('hero-greeting'),
+                name: getVal('hero-name'),
+                tagline: getVal('hero-tagline'),
+                description: getVal('hero-description'),
+                ctaPrimary: getVal('hero-cta-primary'),
+                ctaSecondary: getVal('hero-cta-secondary'),
+            },
+            about: {
+                label: getVal('about-label'),
+                paragraphs: paragraphs,
+            },
+            home: {
+                writingLabel: getVal('home-writing'),
+                latestTitle: getVal('home-latest'),
+                viewAll: getVal('home-view-all'),
+            },
+            blog: {
+                pageTitle: getVal('blog-title'),
+                pageEyebrow: getVal('blog-eyebrow'),
+                pageDescription: getVal('blog-desc'),
+            },
+            post: {
+                backLink: getVal('post-back'),
+                loading: getVal('post-loading'),
+                readingTime: getVal('post-reading'),
+                notFound: getVal('post-not-found'),
+                notFoundDesc: getVal('post-not-found-desc'),
+                browseAll: getVal('post-browse'),
+            },
+            footer: {
+                copyright: getVal('footer-copyright'),
+            },
+        };
+    },
+
+    async saveSiteContent() {
+        const token = this.getSessionToken();
+        if (!token) {
+            this.showToast('请先登录', 'error');
+            return;
+        }
+
+        const siteData = this.collectSiteForm();
+
+        try {
+            const res = await fetch(`${CONFIG.WORKER_URL}/api/site`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    site: siteData,
+                    message: '更新站点页面内容',
+                }),
+            });
+
+            if (res.status === 401) {
+                const err = await res.json().catch(() => ({}));
+                if (err.error === 'Bad credentials') {
+                    throw new Error('Worker 的 GITHUB_TOKEN 已失效，请在 Cloudflare 更新。');
+                }
+                throw new Error('会话已过期，请重新登录。');
+            }
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || err.message || `保存失败：${res.status}`);
+            }
+
+            this.siteContent = siteData;
+            this.showToast('页面内容已更新并发布！', 'success');
+        } catch (err) {
+            this.showToast(`保存失败：${err.message}`, 'error');
+        }
     },
 
     // ── 通行密钥（Passkey） ──────────────────────────────────────────────────

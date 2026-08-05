@@ -1,4 +1,4 @@
-// 公共初始化逻辑：年份、footer social links、页面特定渲染
+// 公共初始化逻辑：年份、footer social links、页面特定渲染、站点内容加载
 document.addEventListener('DOMContentLoaded', () => {
     // 设置年份
     const yearEl = document.getElementById('year');
@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (social.rss) links.push(`<a href="${social.rss}" title="RSS" aria-label="RSS"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 012.18 2.18C8.36 19 7.38 20 6.18 20A2.18 2.18 0 014 17.82a2.18 2.18 0 012.18-2.18M4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44m0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93V10.1z"/></svg></a>`);
         socialContainer.innerHTML = links.join('');
     }
+
+    // 加载站点内容并应用到页面
+    SiteContentLoader.load();
 
     // 页面特定渲染
     if (typeof BlogApp !== 'undefined') {
@@ -42,3 +45,107 @@ document.addEventListener('DOMContentLoaded', () => {
         revealElements.forEach(el => observer.observe(el));
     }
 });
+
+// ── 站点内容加载器 ──────────────────────────────────────────────────────
+const SiteContentLoader = {
+    async load() {
+        try {
+            const url = `/data/site.json?t=${Date.now()}`;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const data = await res.json();
+            this.applyToPage(data);
+        } catch (err) {
+            console.warn('无法加载站点内容，使用默认文本：', err.message);
+        }
+    },
+
+    applyToPage(data) {
+        // 文档标题和描述
+        if (data.site) {
+            if (data.site.title) document.title = data.site.title;
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc && data.site.description) metaDesc.setAttribute('content', data.site.description);
+            if (data.site.lang) document.documentElement.lang = data.site.lang;
+        }
+
+        // 导航链接
+        if (data.nav) {
+            this.setTextByDataAttr('nav-home-text', data.nav.home);
+            this.setTextByDataAttr('nav-blog-text', data.nav.blog);
+            this.setTextByDataAttr('nav-about-text', data.nav.about);
+        }
+
+        // Hero 区域 (首页)
+        if (data.hero && document.querySelector('.hero-content')) {
+            const hero = data.hero;
+            this.setTextByClass('hero-greeting', hero.greeting);
+            this.setTextByClass('hero-name', hero.name);
+            this.setTextByClass('hero-tagline', hero.tagline);
+            this.setTextByClass('hero-description', hero.description);
+            this.setTextByClass('hero-cta-primary', hero.ctaPrimary);
+            this.setTextByClass('hero-cta-secondary', hero.ctaSecondary);
+        }
+
+        // 关于页
+        if (data.about && document.querySelector('#about')) {
+            const about = data.about;
+            this.setTextByClass('about-label', about.label);
+            const textContainer = document.querySelector('.about-text');
+            if (textContainer && about.paragraphs) {
+                textContainer.innerHTML = about.paragraphs
+                    .map(p => `<p>${p}</p>`)
+                    .join('');
+            }
+        }
+
+        // 首页文章区域
+        if (data.home) {
+            this.setTextByClass('section-eyebrow', data.home.writingLabel);
+            this.setTextByClass('section-title', data.home.latestTitle);
+            this.setTextByClass('section-link', data.home.viewAll);
+        }
+
+        // 博客列表页
+        if (data.blog) {
+            this.setTextByClass('page-eyebrow', data.blog.pageEyebrow);
+            this.setTextByClass('page-title', data.blog.pageTitle);
+            this.setTextByClass('page-description', data.blog.pageDescription);
+        }
+
+        // 文章详情页
+        if (data.post) {
+            // post.html 的文本在 blog.js 中动态渲染
+            document.documentElement.dataset.postBack = data.post.backLink || '';
+            document.documentElement.dataset.postLoading = data.post.loading || '';
+            document.documentElement.dataset.postReading = data.post.readingTime || '';
+            document.documentElement.dataset.postNotFound = data.post.notFound || '';
+            document.documentElement.dataset.postNotFoundDesc = data.post.notFoundDesc || '';
+            document.documentElement.dataset.postBrowseAll = data.post.browseAll || '';
+            document.documentElement.dataset.postNoId = data.post.noId || '';
+
+            // post.html 静态元素
+            this.setTextByClass('post-back-text', data.post.backLink);
+            this.setTextByClass('post-loading-text', data.post.loading);
+        }
+
+        // 页脚
+        if (data.footer) {
+            this.setTextByClass('footer-copy-text', data.footer.copyright);
+        }
+    },
+
+    setTextByClass(className, text) {
+        if (!text) return;
+        const els = document.getElementsByClassName(className);
+        for (let el of els) {
+            if (el.textContent) el.textContent = text;
+        }
+    },
+
+    setTextByDataAttr(attrName, text) {
+        if (!text) return;
+        const els = document.querySelectorAll(`[data-${attrName}]`);
+        els.forEach(el => { if (el.textContent) el.textContent = text; });
+    },
+};

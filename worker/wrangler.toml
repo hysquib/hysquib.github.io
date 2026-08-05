@@ -2,8 +2,10 @@ name = "blog-admin-api"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
-# 自定义域名 (Cloudflare Dashboard → Worker → Triggers → Custom Domains)
-# adminblog.hysquib.cn
+# 自定义域名
+routes = [
+  { pattern = "adminblog.hysquib.cn", custom_domain = true }
+]
 
 # KV 命名空间 — 存储通行密钥
 [[kv_namespaces]]
@@ -16,6 +18,7 @@ OAUTH_CLIENT_ID = "Ov23liqPXgOJD3TGrnQV"
 GITHUB_REPO = "hysquib/hysquib.github.io"
 GITHUB_BRANCH = "main"
 POSTS_FILE_PATH = "data/posts.json"
+SITE_FILE_PATH = "data/site.json"
 BLOG_URL = "https://blog.hysquib.cn"
 ALLOWED_USER = "hysquib"
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,8 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-    <title>Blog — hysquib</title>
-    <meta name="description" content="Articles on technology, design, and software engineering.">
+    <title>博客 — hysquib</title>
+    <meta name="description" content="关于技术、设计和软件工程的文章。">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,9 +25,9 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">hysquib<span>.</span></a>
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/blog.html">Blog</a></li>
-                <li><a href="/#about">About</a></li>
+                <li><a href="/" data-nav-home-text>首页</a></li>
+                <li><a href="/blog.html" data-nav-blog-text>博客</a></li>
+                <li><a href="/#about" data-nav-about-text>关于</a></li>
             </ul>
         </div>
     </nav>
@@ -35,9 +35,9 @@
     <!-- Page Header -->
     <header class="page-header">
         <div class="container">
-            <span class="eyebrow fade-in">The Blog</span>
-            <h1 class="fade-in" style="animation-delay: 0.1s;">Writing & Ideas</h1>
-            <p class="fade-in" style="animation-delay: 0.2s;">Thoughts on technology, design, and the craft of building things that matter.</p>
+            <span class="eyebrow page-eyebrow fade-in">博客</span>
+            <h1 class="page-title fade-in" style="animation-delay: 0.1s;">写作与想法</h1>
+            <p class="page-description fade-in" style="animation-delay: 0.2s;">关于技术、设计和构建有意义事物的思考。</p>
         </div>
     </header>
 
@@ -57,7 +57,7 @@
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-social" id="footer-social"></div>
-                <p class="footer-copy">© <span id="year"></span> hysquib. Built with intention.</p>
+                <p class="footer-copy"><span class="footer-copy-text">© <span id="year"></span> hysquib. 用心构建。</span></p>
             </div>
         </div>
     </footer>

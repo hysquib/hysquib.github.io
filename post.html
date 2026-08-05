@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +7,7 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-    <title>Post — hysquib</title>
+    <title>文章 — hysquib</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,9 +24,9 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">hysquib<span>.</span></a>
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/blog.html">Blog</a></li>
-                <li><a href="/#about">About</a></li>
+                <li><a href="/" data-nav-home-text>首页</a></li>
+                <li><a href="/blog.html" data-nav-blog-text>博客</a></li>
+                <li><a href="/#about" data-nav-about-text>关于</a></li>
             </ul>
         </div>
     </nav>
@@ -37,13 +37,13 @@
             <div class="content-width">
                 <a href="/blog.html" class="post-back">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    Back to Blog
+                    <span class="post-back-text">返回博客</span>
                 </a>
 
                 <div id="post-content" style="margin-top: 2rem;">
                     <div style="text-align: center; padding: 4rem 0; color: var(--text-dim);">
                         <span class="spinner"></span>
-                        <p style="margin-top: 1rem;">Loading post...</p>
+                        <p style="margin-top: 1rem;" class="post-loading-text">正在加载文章...</p>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-social" id="footer-social"></div>
-                <p class="footer-copy">© <span id="year"></span> hysquib. Built with intention.</p>
+                <p class="footer-copy"><span class="footer-copy-text">© <span id="year"></span> hysquib. 用心构建。</span></p>
             </div>
         </div>
     </footer>

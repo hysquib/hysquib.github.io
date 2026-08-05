@@ -52,6 +52,7 @@
         <nav class="admin-nav">
             <button class="admin-nav-item active" data-view="posts-list"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>文章列表</span></button>
             <button class="admin-nav-item" data-view="post-editor" data-mode="new"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>新建文章</span></button>
+            <button class="admin-nav-item" data-view="site-content"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span>页面内容</span></button>
             <button class="admin-nav-item" data-view="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>设置</span></button>
             <button class="admin-nav-item" data-view="passkey"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18v3c0 .55.45 1 1 1h4v-3h3v-3h2l3.5-3.5a6 6 0 1 0-2-2L9 11H7v3H4v3h2v3"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/></svg><span>通行密钥</span></button>
             <a href="/" class="admin-nav-item" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>访问站点</span></a>
@@ -138,6 +139,100 @@
                     首次使用需要先用 GitHub 登录，然后在此页面注册通行密钥。<br>
                     注册后即可在登录页面使用通行密钥快速登录。通行密钥仅存储在 Cloudflare KV 中。
                 </p>
+            </div>
+        </div>
+        <div id="view-site-content" class="admin-view" style="display: none;">
+            <div class="admin-header">
+                <div>
+                    <h2>页面内容</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">编辑网站各页面显示的文本内容</p>
+                </div>
+                <div>
+                    <button class="btn btn-ghost" onclick="AdminApp.loadSiteContent()">重新加载</button>
+                    <button class="btn btn-primary" onclick="AdminApp.saveSiteContent()">保存并发布</button>
+                </div>
+            </div>
+
+            <div id="site-content-editor" style="display: none;">
+
+                <div class="settings-card">
+                    <h3>站点信息</h3>
+                    <div class="form-group"><label for="site-title">网站标题</label><input type="text" id="site-title" placeholder="网站标题"></div>
+                    <div class="form-group"><label for="site-description">网站描述</label><input type="text" id="site-description" placeholder="网站描述"></div>
+                    <div class="form-group"><label for="site-lang">语言代码</label><input type="text" id="site-lang" placeholder="zh-CN" style="max-width: 150px;"></div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>导航链接</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="form-group"><label for="nav-home">首页链接文本</label><input type="text" id="nav-home"></div>
+                        <div class="form-group"><label for="nav-blog">博客链接文本</label><input type="text" id="nav-blog"></div>
+                        <div class="form-group"><label for="nav-about">关于链接文本</label><input type="text" id="nav-about"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>首页 Hero 区域</h3>
+                    <div class="form-group"><label for="hero-greeting">问候语</label><input type="text" id="hero-greeting"></div>
+                    <div class="form-group"><label for="hero-name">名称</label><input type="text" id="hero-name"></div>
+                    <div class="form-group"><label for="hero-tagline">标语</label><input type="text" id="hero-tagline"></div>
+                    <div class="form-group"><label for="hero-description">描述</label><textarea id="hero-description" rows="3"></textarea></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group"><label for="hero-cta-primary">主按钮文本</label><input type="text" id="hero-cta-primary"></div>
+                        <div class="form-group"><label for="hero-cta-secondary">次按钮文本</label><input type="text" id="hero-cta-secondary"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>关于页</h3>
+                    <div class="form-group"><label for="about-label">标签文本</label><input type="text" id="about-label"></div>
+                    <div class="form-group"><label for="about-paragraphs">段落内容（每段一行）</label><textarea id="about-paragraphs" rows="5" placeholder="第一行第一段...&#10;第二行第二段..."></textarea></div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>首页文章区域</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="form-group"><label for="home-writing">写作标签</label><input type="text" id="home-writing"></div>
+                        <div class="form-group"><label for="home-latest">最新文章标题</label><input type="text" id="home-latest"></div>
+                        <div class="form-group"><label for="home-view-all">查看全部链接</label><input type="text" id="home-view-all"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>博客列表页</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="form-group"><label for="blog-title">页面标题</label><input type="text" id="blog-title"></div>
+                        <div class="form-group"><label for="blog-eyebrow">页面副标题</label><input type="text" id="blog-eyebrow"></div>
+                        <div class="form-group"><label for="blog-desc">页面描述</label><input type="text" id="blog-desc"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>文章详情页</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div class="form-group"><label for="post-back">返回链接文本</label><input type="text" id="post-back"></div>
+                        <div class="form-group"><label for="post-loading">加载中文本</label><input type="text" id="post-loading"></div>
+                        <div class="form-group"><label for="post-reading">阅读时间后缀</label><input type="text" id="post-reading"></div>
+                        <div class="form-group"><label for="post-not-found">未找到标题</label><input type="text" id="post-not-found"></div>
+                        <div class="form-group"><label for="post-not-found-desc">未找到描述</label><input type="text" id="post-not-found-desc"></div>
+                        <div class="form-group"><label for="post-browse">浏览全部链接文本</label><input type="text" id="post-browse"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>页脚</h3>
+                    <div class="form-group"><label for="footer-copyright">版权文本</label><input type="text" id="footer-copyright"></div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="btn" onclick="AdminApp.loadSiteContent()">取消更改</button>
+                    <button class="btn btn-primary" onclick="AdminApp.saveSiteContent()">保存并发布</button>
+                </div>
+            </div>
+
+            <div id="site-content-loading" style="text-align: center; padding: 3rem; color: var(--text-dim);">
+                <span class="spinner"></span>
+                <p style="margin-top: 1rem;">正在加载站点内容...</p>
             </div>
         </div>
     </main>

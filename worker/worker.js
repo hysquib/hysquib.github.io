@@ -23,7 +23,7 @@
 const REQUIRED_VARS = [
   'SESSION_SECRET', 'GITHUB_TOKEN', 'OAUTH_CLIENT_ID',
   'OAUTH_CLIENT_SECRET', 'GITHUB_REPO', 'GITHUB_BRANCH',
-  'POSTS_FILE_PATH', 'BLOG_URL', 'ALLOWED_USER',
+  'POSTS_FILE_PATH', 'SITE_FILE_PATH', 'BLOG_URL', 'ALLOWED_USER',
 ];
 
 export default {
@@ -173,6 +173,55 @@ export default {
         };
         if (currentSha) githubBody.sha = currentSha;
         const res = await githubFetch(env, `/contents/${env.POSTS_FILE_PATH}`, 'PUT', githubBody);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          return json({ error: err.message || 'GitHub API error' }, corsHeaders, res.status);
+        }
+        return json({ success: true }, corsHeaders);
+      }
+
+      // ── API: Get Site Content ────────────────────────────────────────────
+      if (url.pathname === '/api/site' && request.method === 'GET') {
+        const res = await githubFetch(env, `/contents/${env.SITE_FILE_PATH}?ref=${env.GITHUB_BRANCH}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            return json({ error: `SITE_FILE_PATH "${env.SITE_FILE_PATH}" not found` }, corsHeaders, 404);
+          }
+          const err = await res.json().catch(() => ({}));
+          return json({ error: err.message || 'GitHub API error' }, corsHeaders, res.status);
+        }
+        const data = await res.json();
+        const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+        const parsed = JSON.parse(content);
+        return json(parsed, corsHeaders);
+      }
+
+      // ── API: Save Site Content ───────────────────────────────────────────
+      if (url.pathname === '/api/site' && request.method === 'PUT') {
+        const token = getBearerToken(request);
+        const result = await verifyToken(token, env);
+        if (!result.ok) {
+          return json({ error: 'Unauthorized', reason: result.reason, message: result.message }, corsHeaders, 401);
+        }
+        const body = await request.json();
+        const content = JSON.stringify(body.site, null, 2);
+        const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+        // Worker 自行查询当前文件 sha
+        const checkRes = await githubFetch(env, `/contents/${env.SITE_FILE_PATH}?ref=${env.GITHUB_BRANCH}`);
+        let currentSha = null;
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          currentSha = checkData.sha;
+        }
+
+        const githubBody = {
+          message: body.message || '更新站点内容',
+          content: base64Content,
+          branch: env.GITHUB_BRANCH,
+        };
+        if (currentSha) githubBody.sha = currentSha;
+        const res = await githubFetch(env, `/contents/${env.SITE_FILE_PATH}`, 'PUT', githubBody);
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           return json({ error: err.message || 'GitHub API error' }, corsHeaders, res.status);

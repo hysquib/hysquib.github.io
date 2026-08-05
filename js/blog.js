@@ -26,11 +26,19 @@ const BlogApp = {
     },
 
     /**
+     * Read a data attribute from documentElement, falling back to default.
+     */
+    getSiteText(key, fallback) {
+        const val = document.documentElement?.dataset?.[key];
+        return val || fallback;
+    },
+
+    /**
      * Format an ISO date string into a human-readable format.
      */
     formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -42,7 +50,7 @@ const BlogApp = {
      */
     formatDateShort(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('zh-CN', {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
@@ -97,8 +105,8 @@ const BlogApp = {
         if (latest.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>No posts yet</h3>
-                    <p>Check back soon for new content.</p>
+                    <h3>暂无文章</h3>
+                    <p>敬请期待新内容。</p>
                 </div>
             `;
             return;
@@ -121,8 +129,8 @@ const BlogApp = {
         if (posts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>No posts yet</h3>
-                    <p>Check back soon for new content.</p>
+                    <h3>暂无文章</h3>
+                    <p>敬请期待新内容。</p>
                 </div>
             `;
             return;
@@ -143,11 +151,18 @@ const BlogApp = {
         const params = new URLSearchParams(window.location.search);
         const postId = params.get('id');
 
+        const backLink = this.getSiteText('postBack', '返回博客');
+        const loading = this.getSiteText('postLoading', '正在加载文章...');
+        const readingTime = this.getSiteText('postReading', '分钟阅读');
+        const notFound = this.getSiteText('postNotFound', '未找到文章');
+        const notFoundDesc = this.getSiteText('postNotFoundDesc', '这篇文章可能已被删除。');
+        const browseAll = this.getSiteText('postBrowseAll', '浏览全部文章 →');
+
         if (!postId) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>Post not found</h3>
-                    <p>No post ID specified. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
+                    <h3>${notFound}</h3>
+                    <p>${this.getSiteText('postNoId', '未指定文章 ID。')}<a href="/blog.html" style="color: var(--accent);">${browseAll}</a></p>
                 </div>
             `;
             return;
@@ -159,8 +174,8 @@ const BlogApp = {
         if (!post) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>Post not found</h3>
-                    <p>This post doesn't exist or may have been removed. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
+                    <h3>${notFound}</h3>
+                    <p>${notFoundDesc}<a href="/blog.html" style="color: var(--accent);">${browseAll}</a></p>
                 </div>
             `;
             return;
@@ -196,7 +211,7 @@ const BlogApp = {
                 <div class="post-view-meta">
                     <span>${this.formatDate(post.date)}</span>
                     <span class="dot"></span>
-                    <span>${this.readingTime(post.content)} min read</span>
+                    <span>${this.readingTime(post.content)} ${readingTime}</span>
                 </div>
                 <h1>${this.escapeHtml(post.title)}</h1>
                 ${tags ? `<div class="post-view-tags">${tags}</div>` : ''}
