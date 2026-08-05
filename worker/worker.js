@@ -495,22 +495,28 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     }
     const expectedChallengeB64url = bufferToBase64url(challengeBytes.buffer);
 
-    console.log('Challenge compare:', clientData.challenge?.substring(0, 20), 'vs', expectedChallengeB64url?.substring(0, 20));
+    console.log('Challenge verify - clientData.challenge:', clientData.challenge?.substring(0, 30));
+    console.log('Challenge verify - expectedB64url:', expectedChallengeB64url?.substring(0, 30));
+    console.log('Challenge verify - match:', clientData.challenge === expectedChallengeB64url);
+    console.log('Type verify:', clientData.type);
 
     if (clientData.challenge !== expectedChallengeB64url) {
-      console.log('Challenge mismatch!');
       return false;
     }
     if (clientData.type !== 'webauthn.get') {
-      console.log('Type mismatch! Got:', clientData.type);
       return false;
     }
 
     // 2. 根据公钥类型选择算法（EC 或 RSA）
+    console.log('Public key JWK:', JSON.stringify(publicKeyJwk));
+    console.log('Credential fields:', Object.keys(credential));
+
     const isRSA = publicKeyJwk.kty === 'RSA';
     const keyAlgorithm = isRSA
       ? { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }
       : { name: 'ECDSA', namedCurve: 'P-256' };
+
+    console.log('Using algorithm:', isRSA ? 'RSA' : 'ECDSA');
 
     const key = await crypto.subtle.importKey(
       'jwk',
@@ -530,8 +536,14 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     verificationData.set(new Uint8Array(authData), 0);
     verificationData.set(clientDataHash, authData.byteLength);
 
+    console.log('Verification data length:', verificationData.byteLength);
+    console.log('Auth data length:', authData.byteLength);
+    console.log('Client data hash length:', clientDataHash.byteLength);
+
     // 4. 验证签名
     const signature = base64urlToBuffer(credential.signature);
+    console.log('Signature length:', signature.byteLength);
+
     const verifyAlgorithm = isRSA
       ? { name: 'RSASSA-PKCS1-v1_5' }
       : { name: 'ECDSA', hash: 'SHA-256' };
@@ -542,10 +554,10 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
       signature,
       verificationData,
     );
-    console.log('Passkey verify result:', result);
+    console.log('Final verify result:', result);
     return result;
   } catch (err) {
-    console.error('Passkey verification error:', err);
+    console.error('Passkey verification error:', err.message, err.stack);
     return false;
   }
 }
