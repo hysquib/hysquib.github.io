@@ -46,14 +46,7 @@ export default {
         const missing = REQUIRED_VARS.filter(v => !env[v]);
         return json({
           status: 'ok',
-          missing_env_vars: missing,
           env_configured: missing.length === 0,
-          session_secret_len: env.SESSION_SECRET ? env.SESSION_SECRET.length : 0,
-          github_repo: env.GITHUB_REPO || null,
-          github_branch: env.GITHUB_BRANCH || null,
-          posts_file_path: env.POSTS_FILE_PATH || null,
-          blog_url: env.BLOG_URL || null,
-          worker_custom_domain: 'https://adminblog.hysquib.cn',
         }, corsHeaders);
       }
 
@@ -151,7 +144,7 @@ export default {
         const data = await res.json();
         const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
         const parsed = JSON.parse(content);
-        return json({ ...parsed, sha: data.sha }, corsHeaders);
+        return json(parsed, corsHeaders);
       }
 
       // ── API: Save Posts ──────────────────────────────────────────────────
@@ -164,19 +157,27 @@ export default {
         const body = await request.json();
         const content = JSON.stringify({ posts: body.posts }, null, 2);
         const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+        // Worker 自行查询当前文件 sha，不依赖前端传入
+        const checkRes = await githubFetch(env, `/contents/${env.POSTS_FILE_PATH}?ref=${env.GITHUB_BRANCH}`);
+        let currentSha = null;
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          currentSha = checkData.sha;
+        }
+
         const githubBody = {
           message: body.message || 'Update blog posts',
           content: base64Content,
           branch: env.GITHUB_BRANCH,
         };
-        if (body.sha) githubBody.sha = body.sha;
+        if (currentSha) githubBody.sha = currentSha;
         const res = await githubFetch(env, `/contents/${env.POSTS_FILE_PATH}`, 'PUT', githubBody);
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           return json({ error: err.message || 'GitHub API error' }, corsHeaders, res.status);
         }
-        const data = await res.json();
-        return json({ sha: data.content.sha, success: true }, corsHeaders);
+        return json({ success: true }, corsHeaders);
       }
 
       // ── Passkey: Register (begin) ───────────────────────────────────────

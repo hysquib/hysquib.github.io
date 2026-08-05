@@ -370,7 +370,7 @@ const AdminApp = {
         }
 
         const data = await res.json();
-        this.fileSha = data.sha || null;
+        this.fileSha = null;
         this.posts = data.posts || [];
     },
 
@@ -402,9 +402,6 @@ const AdminApp = {
                 ? `更新文章：${this.getEditingTitle()}`
                 : `创建文章：${this.getEditingTitle()}`,
         };
-        if (this.fileSha) {
-            body.sha = this.fileSha;
-        }
 
         const res = await fetch(`${CONFIG.WORKER_URL}/api/posts`, {
             method: 'PUT',
@@ -429,7 +426,7 @@ const AdminApp = {
         }
 
         const data = await res.json();
-        this.fileSha = data.sha || null;
+        this.fileSha = null;
     },
 
     getEditingTitle() {
