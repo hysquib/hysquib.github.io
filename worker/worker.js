@@ -314,14 +314,14 @@ export default {
         }
 
         const credData = JSON.parse(storedCred);
-        const isValid = await verifyPasskeySignature(
+        const verifyResult = await verifyPasskeySignature(
           credential,
           credData.publicKey,
           challenge,
         );
 
-        if (!isValid) {
-          return json({ error: '通行密钥验证失败' }, corsHeaders, 401);
+        if (verifyResult !== true) {
+          return json({ error: `验证失败：${verifyResult}` }, corsHeaders, 401);
         }
 
         credData.counter = Math.max(credData.counter || 0, credential.counter || 0) + 1;
@@ -487,36 +487,24 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     const clientDataJSON = new TextDecoder().decode(base64urlToBuffer(credential.clientDataJSON));
     const clientData = JSON.parse(clientDataJSON);
 
-    // 浏览器将 challenge 字节数组进行 base64url 编码后存入 clientDataJSON
-    // Worker 生成的是原始字符串，需要做同样的编码后再比较
     const challengeBytes = new Uint8Array(expectedChallenge.length);
     for (let i = 0; i < expectedChallenge.length; i++) {
       challengeBytes[i] = expectedChallenge.charCodeAt(i);
     }
     const expectedChallengeB64url = bufferToBase64url(challengeBytes.buffer);
 
-    console.log('Challenge verify - clientData.challenge:', clientData.challenge?.substring(0, 30));
-    console.log('Challenge verify - expectedB64url:', expectedChallengeB64url?.substring(0, 30));
-    console.log('Challenge verify - match:', clientData.challenge === expectedChallengeB64url);
-    console.log('Type verify:', clientData.type);
-
     if (clientData.challenge !== expectedChallengeB64url) {
-      return false;
+      return `challenge不匹配 (期望=${expectedChallengeB64url?.substring(0, 15)}..., 实际=${clientData.challenge?.substring(0, 15)}...)`;
     }
     if (clientData.type !== 'webauthn.get') {
-      return false;
+      return `类型错误 (期望=webauthn.get, 实际=${clientData.type})`;
     }
 
     // 2. 根据公钥类型选择算法（EC 或 RSA）
-    console.log('Public key JWK:', JSON.stringify(publicKeyJwk));
-    console.log('Credential fields:', Object.keys(credential));
-
     const isRSA = publicKeyJwk.kty === 'RSA';
     const keyAlgorithm = isRSA
       ? { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }
       : { name: 'ECDSA', namedCurve: 'P-256' };
-
-    console.log('Using algorithm:', isRSA ? 'RSA' : 'ECDSA');
 
     const key = await crypto.subtle.importKey(
       'jwk',
@@ -536,14 +524,8 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     verificationData.set(new Uint8Array(authData), 0);
     verificationData.set(clientDataHash, authData.byteLength);
 
-    console.log('Verification data length:', verificationData.byteLength);
-    console.log('Auth data length:', authData.byteLength);
-    console.log('Client data hash length:', clientDataHash.byteLength);
-
     // 4. 验证签名
     const signature = base64urlToBuffer(credential.signature);
-    console.log('Signature length:', signature.byteLength);
-
     const verifyAlgorithm = isRSA
       ? { name: 'RSASSA-PKCS1-v1_5' }
       : { name: 'ECDSA', hash: 'SHA-256' };
@@ -554,10 +536,10 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
       signature,
       verificationData,
     );
-    console.log('Final verify result:', result);
-    return result;
+
+    if (result === true) return true;
+    return `签名验证失败 (算法=${isRSA ? 'RSA' : 'ECDSA'}, 公钥类型=${publicKeyJwk.kty}, 签名长度=${signature.byteLength})`;
   } catch (err) {
-    console.error('Passkey verification error:', err.message, err.stack);
-    return false;
+    return `异常: ${err.message}`;
   }
 }
