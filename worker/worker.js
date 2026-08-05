@@ -15,6 +15,9 @@
  *   POSTS_FILE_PATH      — data/posts.json                            (Text)
  *   BLOG_URL             — https://blog.hysquib.cn                    (Text)
  *   ALLOWED_USER         — hysquib                                    (Text)
+ *
+ * KV Namespace binding (Worker → Settings → KV Namespace Bindings):
+ *   PASSKEY_KV           — Stores registered passkey credentials        (KV)
  */
 
 const REQUIRED_VARS = [
@@ -176,6 +179,206 @@ export default {
         return json({ sha: data.content.sha, success: true }, corsHeaders);
       }
 
+      // ── Passkey: Register (begin) ───────────────────────────────────────
+      if (url.pathname === '/auth/passkey/register/begin' && request.method === 'POST') {
+        // 需要先通过 GitHub 认证才能注册 Passkey
+        const token = getBearerToken(request);
+        const result = await verifyToken(token, env);
+        if (!result.ok) {
+          return json({ error: '请先使用 GitHub 登录后再注册通行密钥' }, corsHeaders, 401);
+        }
+
+        const challenge = randomString(32);
+        const challengeKey = `challenge_register:${result.user}:${challenge}`;
+
+        // 存储 challenge 到 KV，5 分钟过期
+        if (env.PASSKEY_KV) {
+          await env.PASSKEY_KV.put(challengeKey, result.user, { expirationTtl: 300 });
+        }
+
+        return json({
+          challenge,
+          rp: {
+            name: '博客管理后台',
+            id: 'adminblog.hysquib.cn',
+          },
+          user: {
+            id: result.user,
+            name: result.user,
+            displayName: result.user,
+          },
+          pubKeyCredParams: [
+            { type: 'public-key', alg: -7 },   // ES256
+            { type: 'public-key', alg: -257 }, // RS256
+          ],
+          timeout: 60000,
+          attestation: 'none',
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            residentKey: 'preferred',
+            userVerification: 'preferred',
+          },
+        }, corsHeaders);
+      }
+
+      // ── Passkey: Register (finish) ──────────────────────────────────────
+      if (url.pathname === '/auth/passkey/register/finish' && request.method === 'POST') {
+        const token = getBearerToken(request);
+        const result = await verifyToken(token, env);
+        if (!result.ok) {
+          return json({ error: '请先使用 GitHub 登录后再注册通行密钥' }, corsHeaders, 401);
+        }
+
+        const body = await request.json();
+        const { challenge, credential } = body;
+
+        if (!challenge || !credential || !credential.id || !credential.publicKey) {
+          return json({ error: '缺少必要的注册数据' }, corsHeaders, 400);
+        }
+
+        // 验证 challenge
+        const challengeKey = `challenge_register:${result.user}:${challenge}`;
+        if (env.PASSKEY_KV) {
+          const stored = await env.PASSKEY_KV.get(challengeKey);
+          if (!stored) {
+            return json({ error: '注册请求已过期，请重试' }, corsHeaders, 400);
+          }
+          await env.PASSKEY_KV.delete(challengeKey);
+        }
+
+        // 存储通行密钥
+        const credKey = `passkey:${result.user}:${credential.id}`;
+        if (env.PASSKEY_KV) {
+          await env.PASSKEY_KV.put(credKey, JSON.stringify({
+            publicKey: credential.publicKey,
+            counter: credential.counter || 0,
+            created: Date.now(),
+          }));
+        } else {
+          return json({ error: 'KV 存储未配置，无法保存通行密钥' }, corsHeaders, 500);
+        }
+
+        return json({ success: true, message: '通行密钥注册成功' }, corsHeaders);
+      }
+
+      // ── Passkey: Login (begin) ──────────────────────────────────────────
+      if (url.pathname === '/auth/passkey/login/begin' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const username = body.username || env.ALLOWED_USER;
+
+        // 检查是否有已注册的通行密钥
+        let hasPasskey = false;
+        if (env.PASSKEY_KV) {
+          const listResult = await env.PASSKEY_KV.list({ prefix: `passkey:${username}:` });
+          hasPasskey = listResult.keys.length > 0;
+        }
+
+        if (!hasPasskey) {
+          return json({ error: '尚未注册通行密钥，请先用 GitHub 登录后注册' }, corsHeaders, 400);
+        }
+
+        const challenge = randomString(32);
+        const challengeKey = `challenge_login:${username}:${challenge}`;
+        if (env.PASSKEY_KV) {
+          await env.PASSKEY_KV.put(challengeKey, username, { expirationTtl: 300 });
+        }
+
+        return json({
+          challenge,
+          userVerification: 'preferred',
+          timeout: 60000,
+        }, corsHeaders);
+      }
+
+      // ── Passkey: Login (finish) ─────────────────────────────────────────
+      if (url.pathname === '/auth/passkey/login/finish' && request.method === 'POST') {
+        const body = await request.json();
+        const { challenge, credential } = body;
+
+        if (!challenge || !credential || !credential.id || !credential.signature || !credential.authData) {
+          return json({ error: '缺少必要的登录数据' }, corsHeaders, 400);
+        }
+
+        const username = body.username || env.ALLOWED_USER;
+
+        // 验证 challenge
+        const challengeKey = `challenge_login:${username}:${challenge}`;
+        if (!env.PASSKEY_KV) {
+          return json({ error: 'KV 存储未配置' }, corsHeaders, 500);
+        }
+        const storedUser = await env.PASSKEY_KV.get(challengeKey);
+        if (!storedUser) {
+          return json({ error: '登录请求已过期，请重试' }, corsHeaders, 400);
+        }
+        await env.PASSKEY_KV.delete(challengeKey);
+
+        // 获取存储的公钥
+        const credKey = `passkey:${username}:${credential.id}`;
+        const storedCred = await env.PASSKEY_KV.get(credKey);
+        if (!storedCred) {
+          return json({ error: '通行密钥未找到，请重新注册' }, corsHeaders, 400);
+        }
+
+        // 验证签名（使用 Web Crypto API）
+        const credData = JSON.parse(storedCred);
+        const isValid = await verifyPasskeySignature(
+          credential,
+          credData.publicKey,
+          challenge,
+        );
+
+        if (!isValid) {
+          return json({ error: '通行密钥验证失败' }, corsHeaders, 401);
+        }
+
+        // 更新计数器
+        credData.counter = Math.max(credData.counter || 0, credential.counter || 0) + 1;
+        await env.PASSKEY_KV.put(credKey, JSON.stringify(credData));
+
+        // 签发会话 token
+        const expiry = Date.now() + 8 * 60 * 60 * 1000;
+        const payload = `${username}:${expiry}`;
+        const signature = await hmacSign(payload, env.SESSION_SECRET);
+        const sessionToken = `${base64url(payload)}.${signature}`;
+
+        return json({ token: sessionToken, user: username }, corsHeaders);
+      }
+
+      // ── Passkey: Check registration status ──────────────────────────────
+      if (url.pathname === '/auth/passkey/status' && request.method === 'GET') {
+        const token = getBearerToken(request);
+        const result = await verifyToken(token, env);
+        if (!result.ok) {
+          return json({ error: '未认证' }, corsHeaders, 401);
+        }
+
+        let registered = false;
+        if (env.PASSKEY_KV) {
+          const listResult = await env.PASSKEY_KV.list({ prefix: `passkey:${result.user}:` });
+          registered = listResult.keys.length > 0;
+        }
+
+        return json({ registered, user: result.user }, corsHeaders);
+      }
+
+      // ── Passkey: Unregister ─────────────────────────────────────────────
+      if (url.pathname === '/auth/passkey/unregister' && request.method === 'POST') {
+        const token = getBearerToken(request);
+        const result = await verifyToken(token, env);
+        if (!result.ok) {
+          return json({ error: '未认证' }, corsHeaders, 401);
+        }
+
+        if (env.PASSKEY_KV) {
+          const listResult = await env.PASSKEY_KV.list({ prefix: `passkey:${result.user}:` });
+          for (const key of listResult.keys) {
+            await env.PASSKEY_KV.delete(key.name);
+          }
+        }
+
+        return json({ success: true, message: '通行密钥已删除' }, corsHeaders);
+      }
+
       return json({ error: 'Not found' }, corsHeaders, 404);
     } catch (err) {
       return json({ error: err.message, stack: err.stack }, corsHeaders, 500);
@@ -267,4 +470,69 @@ function randomString(len) {
   let result = '';
   for (let i = 0; i < len; i++) result += chars[arr[i] % chars.length];
   return result;
+}
+
+// ── Passkey 辅助函数 ──────────────────────────────────────────────────────────
+
+function base64urlToBuffer(b64url) {
+  const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+function bufferToBase64url(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+/**
+ * 验证 Passkey 签名
+ * credential: { id, authenticatorData, clientDataJSON, signature, userHandle }
+ * publicKeyJwk: 存储的 JWK 公钥
+ * expectedChallenge: 服务端生成的 challenge
+ */
+async function verifyPasskeySignature(credential, publicKeyJwk, expectedChallenge) {
+  try {
+    // 1. 验证 clientDataJSON 中的 challenge
+    const clientDataJSON = new TextDecoder().decode(base64urlToBuffer(credential.clientDataJSON));
+    const clientData = JSON.parse(clientDataJSON);
+    if (clientData.challenge !== expectedChallenge) return false;
+    if (clientData.type !== 'webauthn.get') return false;
+
+    // 2. 导入公钥
+    const key = await crypto.subtle.importKey(
+      'jwk',
+      publicKeyJwk,
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['verify'],
+    );
+
+    // 3. 构造验证数据：authenticatorData + SHA256(clientDataJSON)
+    const authData = base64urlToBuffer(credential.authenticatorData);
+    const clientDataHash = new Uint8Array(
+      await crypto.subtle.digest('SHA-256', base64urlToBuffer(credential.clientDataJSON)),
+    );
+
+    const verificationData = new Uint8Array(authData.byteLength + clientDataHash.byteLength);
+    verificationData.set(new Uint8Array(authData), 0);
+    verificationData.set(clientDataHash, authData.byteLength);
+
+    // 4. 验证签名
+    const signature = base64urlToBuffer(credential.signature);
+    return crypto.subtle.verify(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      key,
+      signature,
+      verificationData,
+    );
+  } catch (err) {
+    console.error('Passkey verification error:', err);
+    return false;
+  }
 }

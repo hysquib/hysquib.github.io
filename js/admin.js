@@ -40,6 +40,12 @@ const AdminApp = {
             window.location.href = `${CONFIG.WORKER_URL}/auth/login`;
         });
 
+        // 通行密钥登录按钮
+        const passkeyLoginBtn = document.getElementById('passkey-login-btn');
+        if (passkeyLoginBtn) {
+            passkeyLoginBtn.addEventListener('click', () => this.loginWithPasskey());
+        }
+
         // 诊断按钮（如果存在）
         const diagnoseBtn = document.getElementById('diagnose-btn');
         if (diagnoseBtn) {
@@ -223,6 +229,8 @@ const AdminApp = {
             this.loadPosts();
         } else if (viewName === 'settings') {
             this.updateStorageBadges();
+        } else if (viewName === 'passkey') {
+            this.checkPasskeyStatus();
         }
     },
 
@@ -694,6 +702,379 @@ const AdminApp = {
             toast.style.transition = 'all 0.3s ease';
             setTimeout(() => toast.remove(), 300);
         }, 3500);
+    },
+
+    // ── 通行密钥（Passkey） ──────────────────────────────────────────────────
+
+    /**
+     * 检查浏览器是否支持 WebAuthn
+     */
+    isPasskeySupported() {
+        return typeof window.PublicKeyCredential !== 'undefined' &&
+               typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function';
+    },
+
+    /**
+     * 检查通行密钥注册状态
+     */
+    async checkPasskeyStatus() {
+        const statusEl = document.getElementById('passkey-status');
+        const registerBtn = document.getElementById('passkey-register-btn');
+        const removeBtn = document.getElementById('passkey-remove-btn');
+        if (!statusEl) return;
+
+        if (!this.isPasskeySupported()) {
+            statusEl.textContent = '当前浏览器不支持通行密钥。请使用最新版 Safari、Chrome 或 Edge。';
+            statusEl.style.background = 'rgba(185, 28, 28, 0.1)';
+            if (registerBtn) registerBtn.disabled = true;
+            return;
+        }
+
+        try {
+            const token = this.getSessionToken();
+            const res = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/status`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const data = await res.json();
+
+            if (data.registered) {
+                statusEl.innerHTML = '✅ 已注册通行密钥。你可以在登录页面使用 Face ID / Touch ID 快速登录。';
+                statusEl.style.background = 'rgba(22, 163, 74, 0.1)';
+                if (registerBtn) registerBtn.style.display = 'none';
+                if (removeBtn) removeBtn.style.display = 'inline-flex';
+            } else {
+                statusEl.innerHTML = 'ⓘ 尚未注册通行密钥。点击下方按钮注册，注册后可用设备生物识别快速登录。';
+                statusEl.style.background = 'rgba(0,0,0,0.05)';
+                if (registerBtn) registerBtn.style.display = 'inline-flex';
+                if (removeBtn) removeBtn.style.display = 'none';
+            }
+        } catch (err) {
+            statusEl.textContent = `检查状态失败：${err.message}`;
+            statusEl.style.background = 'rgba(185, 28, 28, 0.1)';
+        }
+    },
+
+    /**
+     * 注册通行密钥
+     */
+    async registerPasskey() {
+        if (!this.isPasskeySupported()) {
+            this.showToast('当前浏览器不支持通行密钥', 'error');
+            return;
+        }
+
+        try {
+            const token = this.getSessionToken();
+
+            // 1. 从 Worker 获取注册 challenge
+            const beginRes = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/register/begin`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const beginData = await beginRes.json();
+
+            if (beginData.error) {
+                this.showToast(beginData.error, 'error');
+                return;
+            }
+
+            // 2. 调用浏览器 WebAuthn API 创建凭证
+            const publicKey = {
+                challenge: Uint8Array.from(beginData.challenge, c => c.charCodeAt(0)),
+                rp: beginData.rp,
+                user: {
+                    id: Uint8Array.from(beginData.user.id, c => c.charCodeAt(0)),
+                    name: beginData.user.name,
+                    displayName: beginData.user.displayName,
+                },
+                pubKeyCredParams: beginData.pubKeyCredParams,
+                timeout: beginData.timeout,
+                attestation: beginData.attestation,
+                authenticatorSelection: beginData.authenticatorSelection,
+            };
+
+            const credential = await navigator.credentials.create({ publicKey });
+            if (!credential) {
+                this.showToast('注册失败：未创建凭证', 'error');
+                return;
+            }
+
+            // 3. 提取公钥
+            const attestationObject = new Uint8Array(credential.response.attestationObject);
+            const clientDataJSON = new Uint8Array(credential.response.clientDataJSON);
+
+            // 解析 attestationObject 获取公钥（简化版：直接提取 CBOR 中的公钥）
+            const publicKeyJwk = await this.extractPublicKeyFromAttestation(credential.response);
+
+            // 4. 发送给 Worker 完成
+            const finishRes = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/register/finish`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    challenge: beginData.challenge,
+                    credential: {
+                        id: credential.id,
+                        publicKey: publicKeyJwk,
+                        counter: 0,
+                    },
+                }),
+            });
+            const finishData = await finishRes.json();
+
+            if (finishData.success) {
+                this.showToast('通行密钥注册成功！', 'success');
+                this.checkPasskeyStatus();
+            } else {
+                this.showToast(finishData.error || '注册失败', 'error');
+            }
+        } catch (err) {
+            if (err.name === 'NotAllowedError') {
+                this.showToast('注册已取消', 'info');
+            } else {
+                this.showToast(`注册失败：${err.message}`, 'error');
+            }
+        }
+    },
+
+    /**
+     * 从 attestation 中提取公钥（JWK 格式）
+     */
+    async extractPublicKeyFromAttestation(response) {
+        // 获取 authData
+        const attestationObject = new Uint8Array(response.attestationObject);
+
+        // 解析 CBOR attestationObject — 简化版解析
+        // attestationObject = { fmt, attStmt, authData }
+        // authData 结构：rpIdHash(32) + flags(1) + signCount(4) + [attestedCredentialData]
+        // attestedCredentialData = aaguid(16) + credIdLen(2) + credId + credPublicKey(COSE)
+
+        // 使用 CBOR 解码 — 浏览器不内置 CBOR，手动解析
+        const decoded = this.decodeCBOR(attestationObject);
+        const authData = new Uint8Array(decoded.authData);
+
+        // 跳过 rpIdHash(32) + flags(1) + signCount(4) = 37 bytes
+        const hasAttested = (authData[32] & 0x40) !== 0;
+        if (!hasAttested) throw new Error('authData 中没有 attestedCredentialData');
+
+        let offset = 37;
+        // 跳过 aaguid(16)
+        offset += 16;
+        // 读取 credId 长度（2 bytes big-endian）
+        const credIdLen = (authData[offset] << 8) | authData[offset + 1];
+        offset += 2 + credIdLen;
+
+        // 剩余就是 COSE 公钥
+        const cosePublicKey = authData.slice(offset);
+
+        // 将 COSE 公钥转换为 JWK
+        const coseDecoded = this.decodeCBOR(cosePublicKey);
+
+        // COSE Key 格式 (EC2 P-256):
+        // 1: kty (2 = EC2), -1: crv (1 = P-256), -2: x, -3: y
+        const x = this.arrayBufferToBase64url(coseDecoded[-2]);
+        const y = this.arrayBufferToBase64url(coseDecoded[-3]);
+
+        return {
+            kty: 'EC',
+            crv: 'P-256',
+            x: x,
+            y: y,
+            ext: true,
+        };
+    },
+
+    /**
+     * 简易 CBOR 解码器（仅支持 Map 和已知类型）
+     */
+    decodeCBOR(bytes) {
+        let offset = 0;
+
+        function readByte() { return bytes[offset++]; }
+
+        function readUint(len) {
+            let val = 0;
+            for (let i = 0; i < len; i++) val = (val << 8) | bytes[offset++];
+            return val;
+        }
+
+        function readArg(ai) {
+            if (ai < 24) return ai;
+            if (ai === 24) return readUint(1);
+            if (ai === 25) return readUint(2);
+            if (ai === 26) return readUint(4);
+            if (ai === 27) return readUint(8);
+            throw new Error(`CBOR: 不支持的 ai ${ai}`);
+        }
+
+        function readItem() {
+            const firstByte = readByte();
+            const majorType = firstByte >> 5;
+            const ai = firstByte & 0x1f;
+
+            switch (majorType) {
+                case 0: // uint
+                    return readArg(ai);
+                case 1: // negative int
+                    return -1 - readArg(ai);
+                case 2: { // byte string
+                    const len = readArg(ai);
+                    const buf = bytes.slice(offset, offset + len);
+                    offset += len;
+                    return buf;
+                }
+                case 3: { // text string
+                    const len = readArg(ai);
+                    const buf = bytes.slice(offset, offset + len);
+                    offset += len;
+                    return new TextDecoder().decode(buf);
+                }
+                case 4: { // array
+                    const len = readArg(ai);
+                    const arr = [];
+                    for (let i = 0; i < len; i++) arr.push(readItem());
+                    return arr;
+                }
+                case 5: { // map
+                    const len = readArg(ai);
+                    const map = {};
+                    for (let i = 0; i < len; i++) {
+                        const key = readItem();
+                        map[key] = readItem();
+                    }
+                    return map;
+                }
+                case 7: // simple/float
+                    if (ai === 20) return false;
+                    if (ai === 21) return true;
+                    if (ai === 22) return null;
+                    return readArg(ai);
+                default:
+                    throw new Error(`CBOR: 不支持的 major type ${majorType}`);
+            }
+        }
+
+        return readItem();
+    },
+
+    arrayBufferToBase64url(buf) {
+        const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    },
+
+    /**
+     * 使用通行密钥登录
+     */
+    async loginWithPasskey() {
+        if (!this.isPasskeySupported()) {
+            this.showToast('当前浏览器不支持通行密钥', 'error');
+            return;
+        }
+
+        try {
+            // 1. 从 Worker 获取登录 challenge
+            const beginRes = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/login/begin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const beginData = await beginRes.json();
+
+            if (beginData.error) {
+                this.showLoginError(beginData.error);
+                return;
+            }
+
+            // 2. 调用浏览器 WebAuthn API 验证
+            const publicKey = {
+                challenge: Uint8Array.from(beginData.challenge, c => c.charCodeAt(0)),
+                timeout: beginData.timeout,
+                userVerification: beginData.userVerification,
+            };
+
+            // 尝试 discoverable credential（无需指定 credentialId）
+            const assertion = await navigator.credentials.get({ publicKey });
+            if (!assertion) {
+                this.showLoginError('登录失败：未获取凭证');
+                return;
+            }
+
+            // 3. 提取签名数据发给 Worker
+            const authenticatorData = this.arrayBufferToBase64url(assertion.response.authenticatorData);
+            const clientDataJSON = this.arrayBufferToBase64url(assertion.response.clientDataJSON);
+            const signature = this.arrayBufferToBase64url(assertion.response.signature);
+
+            const finishRes = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/login/finish`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    challenge: beginData.challenge,
+                    credential: {
+                        id: assertion.id,
+                        authenticatorData,
+                        clientDataJSON,
+                        signature,
+                        counter: 0,
+                    },
+                }),
+            });
+            const finishData = await finishRes.json();
+
+            if (finishData.token) {
+                sessionStorage.setItem(this.TOKEN_KEY, finishData.token);
+                sessionStorage.setItem(this.AUTH_KEY, 'true');
+                this.showToast('通行密钥登录成功！', 'success');
+                this.showDashboard();
+            } else {
+                this.showLoginError(finishData.error || '通行密钥验证失败');
+            }
+        } catch (err) {
+            if (err.name === 'NotAllowedError') {
+                // 用户取消，不显示错误
+            } else {
+                this.showLoginError(`登录失败：${err.message}`);
+            }
+        }
+    },
+
+    showLoginError(message) {
+        const errorEl = document.getElementById('login-error');
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    },
+
+    /**
+     * 删除通行密钥
+     */
+    async removePasskey() {
+        if (!confirm('确定要删除已注册的通行密钥吗？删除后需要重新注册才能使用。')) return;
+
+        try {
+            const token = this.getSessionToken();
+            const res = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/unregister`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                this.showToast('通行密钥已删除', 'success');
+                this.checkPasskeyStatus();
+            } else {
+                this.showToast(data.error || '删除失败', 'error');
+            }
+        } catch (err) {
+            this.showToast(`删除失败：${err.message}`, 'error');
+        }
     },
 };
 
