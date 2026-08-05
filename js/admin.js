@@ -344,7 +344,16 @@ const AdminApp = {
         });
 
         if (res.status === 401) {
+            const err = await res.json().catch(() => ({}));
+            // 区分：会话 token 过期 vs GitHub PAT 无效
+            if (err.error === 'Bad credentials') {
+                throw new Error('Worker 的 GITHUB_TOKEN 已失效，请在 Cloudflare Worker 设置中更新 GitHub Personal Access Token。');
+            }
             throw new Error('会话已过期，请重新登录。');
+        }
+
+        if (res.status === 404) {
+            throw new Error(`仓库中未找到 data/posts.json 文件，请先在 GitHub 仓库创建该文件。`);
         }
 
         if (!res.ok) {
@@ -399,6 +408,10 @@ const AdminApp = {
         });
 
         if (res.status === 401) {
+            const err = await res.json().catch(() => ({}));
+            if (err.error === 'Bad credentials') {
+                throw new Error('Worker 的 GITHUB_TOKEN 已失效，请在 Cloudflare 更新。');
+            }
             throw new Error('会话已过期，请重新登录。');
         }
 
