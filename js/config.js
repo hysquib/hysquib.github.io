@@ -11,9 +11,11 @@
 const CONFIG = {
     // ── Worker API ──────────────────────────────────────────────────────────
     // Cloudflare Worker URL for admin authentication and GitHub API proxy.
+    // Custom domain mapped to the Worker via Cloudflare Worker
+    //   → Triggers → Custom Domains → adminblog.hysquib.cn
     // The Worker stores all sensitive credentials (PAT, OAuth secrets) as
     // environment variables — they are never exposed to the frontend.
-    WORKER_URL: 'https://blog-admin-api.nzp5y2tsp7.workers.dev',
+    WORKER_URL: 'https://adminblog.hysquib.cn',
 
     // ── Site Identity ───────────────────────────────────────────────────────
     SITE_NAME: 'hysquib',
@@ -22,6 +24,7 @@ const CONFIG = {
     SITE_DESCRIPTION: '关于技术、设计和构建有意义事物的个人思考。',
 
     // ── Social Links ────────────────────────────────────────────────────────
+    // Leave empty ('') to hide a link from the homepage.
     SOCIAL: {
         github:   'https://github.com/hysquib',
         twitter:  '',
