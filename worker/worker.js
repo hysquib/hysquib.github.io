@@ -481,6 +481,56 @@ function bufferToBase64url(buffer) {
   return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
+/**
+ * ECDSA 签名格式转换：ASN.1 DER → IEEE P1363 raw (r||s)
+ * WebAuthn authenticators 返回 DER 格式，Web Crypto API 只接受 raw 格式
+ */
+function derToRawSignature(derSig) {
+  try {
+    // DER structure: 0x30 <len> 0x02 <rLen> <r...> 0x02 <sLen> <s...>
+    let offset = 0;
+    if (derSig[offset] !== 0x30) return null;
+    offset++;
+    // Skip outer length (may be > 0x7F, multi-byte)
+    if (derSig[offset] & 0x80) offset += 1 + (derSig[offset] & 0x7F);
+    else offset++;
+
+    if (derSig[offset] !== 0x02) return null;
+    offset++;
+    const rLen = derSig[offset]; offset++;
+    // Skip leading 0x00 padding (DER pads positive integers with leading 0x00 if high bit set)
+    let rOffset = offset;
+    let rLenActual = rLen;
+    if (derSig[rOffset] === 0x00 && rLen > 1) {
+      rOffset++; rLenActual--;
+    }
+    offset += rLen;
+
+    if (derSig[offset] !== 0x02) return null;
+    offset++;
+    const sLen = derSig[offset]; offset++;
+    let sOffset = offset;
+    let sLenActual = sLen;
+    if (derSig[sOffset] === 0x00 && sLen > 1) {
+      sOffset++; sLenActual--;
+    }
+
+    // P-256: r and s are each 32 bytes
+    const raw = new Uint8Array(64);
+    raw.set(derSig.subarray(rOffset, rOffset + rLenActual), 32 - rLenActual);
+    raw.set(derSig.subarray(sOffset, sOffset + sLenActual), 64 - sLenActual);
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 验证 Passkey 签名
+ * credential: { id, authenticatorData, clientDataJSON, signature, userHandle }
+ * publicKeyJwk: 存储的 JWK 公钥
+ * expectedChallenge: 服务端生成的 challenge
+ */
 async function verifyPasskeySignature(credential, publicKeyJwk, expectedChallenge) {
   try {
     // 1. 验证 clientDataJSON 中的 challenge
@@ -525,10 +575,16 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     verificationData.set(clientDataHash, authData.byteLength);
 
     // 4. 验证签名
-    const signature = base64urlToBuffer(credential.signature);
+    let signature = base64urlToBuffer(credential.signature);
     const verifyAlgorithm = isRSA
       ? { name: 'RSASSA-PKCS1-v1_5' }
       : { name: 'ECDSA', hash: 'SHA-256' };
+
+    // ECDSA 签名格式转换：WebAuthn 使用 DER 编码，Web Crypto 需要 raw (r||s) 格式
+    if (!isRSA) {
+      const converted = derToRawSignature(new Uint8Array(signature));
+      if (converted) signature = converted.buffer;
+    }
 
     const result = await crypto.subtle.verify(
       verifyAlgorithm,
