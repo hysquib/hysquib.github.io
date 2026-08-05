@@ -200,7 +200,7 @@ export default {
           challenge,
           rp: {
             name: '博客管理后台',
-            id: 'adminblog.hysquib.cn',
+            id: 'hysquib.cn',
           },
           user: {
             id: result.user,
