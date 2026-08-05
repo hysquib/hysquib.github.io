@@ -10,13 +10,16 @@ compatibility_date = "2024-01-01"
 binding = "PASSKEY_KV"
 id = "aef763a945a541788c1cfb312789055c"
 
-# 环境变量请在 Cloudflare Dashboard → Worker → Settings → Variables 中配置:
-#   GITHUB_TOKEN         (Secret)
-#   OAUTH_CLIENT_ID      (Text)
-#   OAUTH_CLIENT_SECRET  (Secret)
-#   SESSION_SECRET       (Secret)
-#   GITHUB_REPO          (Text)
-#   GITHUB_BRANCH        (Text)
-#   POSTS_FILE_PATH      (Text)
-#   BLOG_URL             (Text)
-#   ALLOWED_USER         (Text)
+# 环境变量（自动部署时会自动配置）
+[vars]
+OAUTH_CLIENT_ID = "你的GitHubOAuthClientID"
+GITHUB_REPO = "hysquib/hysquib.github.io"
+GITHUB_BRANCH = "main"
+POSTS_FILE_PATH = "data/posts.json"
+BLOG_URL = "https://blog.hysquib.cn"
+ALLOWED_USER = "hysquib"
+
+# === 以下是敏感密钥，请在 Cloudflare Dashboard → Worker → Settings → Variables 中手动配置 ===
+# GITHUB_TOKEN         (Secret) - GitHub Personal Access Token
+# OAUTH_CLIENT_SECRET  (Secret) - GitHub OAuth App Client Secret
+# SESSION_SECRET       (Secret) - 随机生成的安全字符串
