@@ -575,15 +575,28 @@ const AdminApp = {
                     <a href="/post.html?id=${encodeURIComponent(post.id)}" target="_blank" class="icon-btn" title="查看文章">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
-                    <button class="icon-btn" title="编辑" onclick="AdminApp.showEditor('edit', '${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn" title="编辑" data-action="edit" data-post-id="${this.escapeHtml(post.id)}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="icon-btn danger" title="删除" onclick="AdminApp.deletePost('${this.escapeHtml(post.id)}')">
+                    <button class="icon-btn danger" title="删除" data-action="delete" data-post-id="${this.escapeHtml(post.id)}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                 </div>
             </div>
         `).join('');
+
+        // 事件委托：避免 inline onclick 的 XSS 风险
+        container.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                const postId = btn.dataset.postId;
+                if (action === 'edit') {
+                    this.showEditor('edit', postId);
+                } else if (action === 'delete') {
+                    this.deletePost(postId);
+                }
+            });
+        });
     },
 
     // ── 实时预览 ─────────────────────────────────────────────────────────────
@@ -665,7 +678,7 @@ const AdminApp = {
             .replace(/!\[.*?\]\(.+?\)/g, '')
             .replace(/^\s*[-*]\s+/gm, '')
             .replace(/^\s*\d+\.\s+/gm, '')
-            .replace(/>\s+/gm, '')
+            .replace(>\s+/gm, '')
             .replace(/```[\s\S]*?```/g, '')
             .replace(/\n{2,}/g, '\n')
             .trim();

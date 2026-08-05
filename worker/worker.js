@@ -31,7 +31,7 @@ export default {
     const url = new URL(request.url);
 
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': env.BLOG_URL || 'https://blog.hysquib.cn',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization, Content-Type',
     };
@@ -181,6 +181,7 @@ export default {
 
       // ── Passkey: Register (begin) ───────────────────────────────────────
       if (url.pathname === '/auth/passkey/register/begin' && request.method === 'POST') {
+        // 需要先通过 GitHub 认证才能注册 Passkey
         const token = getBearerToken(request);
         const result = await verifyToken(token, env);
         if (!result.ok) {
@@ -190,6 +191,7 @@ export default {
         const challenge = randomString(32);
         const challengeKey = `challenge_register:${result.user}:${challenge}`;
 
+        // 存储 challenge 到 KV，5 分钟过期
         if (env.PASSKEY_KV) {
           await env.PASSKEY_KV.put(challengeKey, result.user, { expirationTtl: 300 });
         }
@@ -206,8 +208,8 @@ export default {
             displayName: result.user,
           },
           pubKeyCredParams: [
-            { type: 'public-key', alg: -7 },
-            { type: 'public-key', alg: -257 },
+            { type: 'public-key', alg: -7 },   // ES256
+            { type: 'public-key', alg: -257 }, // RS256
           ],
           timeout: 60000,
           attestation: 'none',
@@ -234,6 +236,7 @@ export default {
           return json({ error: '缺少必要的注册数据' }, corsHeaders, 400);
         }
 
+        // 验证 challenge
         const challengeKey = `challenge_register:${result.user}:${challenge}`;
         if (env.PASSKEY_KV) {
           const stored = await env.PASSKEY_KV.get(challengeKey);
@@ -243,6 +246,7 @@ export default {
           await env.PASSKEY_KV.delete(challengeKey);
         }
 
+        // 存储通行密钥
         const credKey = `passkey:${result.user}:${credential.id}`;
         if (env.PASSKEY_KV) {
           await env.PASSKEY_KV.put(credKey, JSON.stringify({
@@ -262,6 +266,7 @@ export default {
         const body = await request.json().catch(() => ({}));
         const username = body.username || env.ALLOWED_USER;
 
+        // 检查是否有已注册的通行密钥
         let hasPasskey = false;
         if (env.PASSKEY_KV) {
           const listResult = await env.PASSKEY_KV.list({ prefix: `passkey:${username}:` });
@@ -269,7 +274,7 @@ export default {
         }
 
         if (!hasPasskey) {
-          return json({ error: '尚未注册通行密钥，请先用 GitHub 登录后注册' }, corsHeaders, 400);
+          return json({ error: '通行密钥登录不可用，请使用 GitHub 登录' }, corsHeaders, 400);
         }
 
         const challenge = randomString(32);
@@ -297,6 +302,7 @@ export default {
 
         const username = body.username || env.ALLOWED_USER;
 
+        // 验证 challenge
         const challengeKey = `challenge_login:${username}:${challenge}`;
         if (!env.PASSKEY_KV) {
           return json({ error: 'KV 存储未配置' }, corsHeaders, 500);
@@ -307,12 +313,14 @@ export default {
         }
         await env.PASSKEY_KV.delete(challengeKey);
 
+        // 获取存储的公钥
         const credKey = `passkey:${username}:${credential.id}`;
         const storedCred = await env.PASSKEY_KV.get(credKey);
         if (!storedCred) {
           return json({ error: '通行密钥未找到，请重新注册' }, corsHeaders, 400);
         }
 
+        // 验证签名（使用 Web Crypto API）
         const credData = JSON.parse(storedCred);
         const verifyResult = await verifyPasskeySignature(
           credential,
@@ -324,9 +332,11 @@ export default {
           return json({ error: `验证失败：${verifyResult}` }, corsHeaders, 401);
         }
 
+        // 更新计数器
         credData.counter = Math.max(credData.counter || 0, credential.counter || 0) + 1;
         await env.PASSKEY_KV.put(credKey, JSON.stringify(credData));
 
+        // 签发会话 token
         const expiry = Date.now() + 8 * 60 * 60 * 1000;
         const payload = `${username}:${expiry}`;
         const signature = await hmacSign(payload, env.SESSION_SECRET);
@@ -372,7 +382,8 @@ export default {
 
       return json({ error: 'Not found' }, corsHeaders, 404);
     } catch (err) {
-      return json({ error: err.message, stack: err.stack }, corsHeaders, 500);
+      console.error('Worker error:', err);
+      return json({ error: '服务器内部错误' }, corsHeaders, 500);
     }
   },
 };
