@@ -1,14 +1,6 @@
 {
   "posts": [
     {
-      "id": "123",
-      "title": "123",
-      "content": "123",
-      "tags": [],
-      "excerpt": "123",
-      "date": "2026-08-05"
-    },
-    {
       "id": "agmc-6th-redemption-guide",
       "title": "AGMC 第六届数学竞赛 — 兑奖指南与奖项总览",
       "date": "2026-08-03",
