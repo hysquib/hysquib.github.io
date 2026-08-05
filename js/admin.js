@@ -730,27 +730,9 @@ const AdminApp = {
         loadingEl.style.display = 'block';
         editorEl.style.display = 'none';
 
-        const token = this.getSessionToken();
-        if (!token) {
-            this.showToast('请先登录', 'error');
-            return;
-        }
-
         try {
-            const res = await fetch(`${CONFIG.WORKER_URL}/api/site`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-
-            if (res.status === 401) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || '会话已过期，请重新登录。');
-            }
-
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || err.message || `加载失败：${res.status}`);
-            }
-
+            const res = await fetch(`/data/site.json?t=${Date.now()}`);
+            if (!res.ok) throw new Error(`无法读取 site.json (HTTP ${res.status})`);
             const data = await res.json();
             this.siteContent = data;
             this.populateSiteForm(data);
