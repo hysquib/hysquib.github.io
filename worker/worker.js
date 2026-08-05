@@ -483,11 +483,25 @@ function bufferToBase64url(buffer) {
 
 async function verifyPasskeySignature(credential, publicKeyJwk, expectedChallenge) {
   try {
+    console.log('Passkey verify - credential keys:', Object.keys(credential));
+    console.log('Passkey verify - publicKeyJwk:', JSON.stringify(publicKeyJwk));
+    console.log('Passkey verify - expectedChallenge:', expectedChallenge?.substring?.(0, 20));
+
+    // 1. 验证 clientDataJSON 中的 challenge
     const clientDataJSON = new TextDecoder().decode(base64urlToBuffer(credential.clientDataJSON));
     const clientData = JSON.parse(clientDataJSON);
-    if (clientData.challenge !== expectedChallenge) return false;
-    if (clientData.type !== 'webauthn.get') return false;
+    console.log('Passkey verify - clientData.challenge:', clientData.challenge?.substring?.(0, 20));
+    console.log('Passkey verify - clientData.type:', clientData.type);
+    if (clientData.challenge !== expectedChallenge) {
+      console.log('Challenge mismatch!');
+      return false;
+    }
+    if (clientData.type !== 'webauthn.get') {
+      console.log('Type mismatch!');
+      return false;
+    }
 
+    // 2. 导入公钥
     const key = await crypto.subtle.importKey(
       'jwk',
       publicKeyJwk,
@@ -496,6 +510,7 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
       ['verify'],
     );
 
+    // 3. 构造验证数据：authenticatorData + SHA256(clientDataJSON)
     const authData = base64urlToBuffer(credential.authenticatorData);
     const clientDataHash = new Uint8Array(
       await crypto.subtle.digest('SHA-256', base64urlToBuffer(credential.clientDataJSON)),
@@ -505,13 +520,16 @@ async function verifyPasskeySignature(credential, publicKeyJwk, expectedChalleng
     verificationData.set(new Uint8Array(authData), 0);
     verificationData.set(clientDataHash, authData.byteLength);
 
+    // 4. 验证签名
     const signature = base64urlToBuffer(credential.signature);
-    return crypto.subtle.verify(
+    const result = await crypto.subtle.verify(
       { name: 'ECDSA', hash: 'SHA-256' },
       key,
       signature,
       verificationData,
     );
+    console.log('Passkey verify - result:', result);
+    return result;
   } catch (err) {
     console.error('Passkey verification error:', err);
     return false;
