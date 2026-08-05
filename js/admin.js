@@ -599,7 +599,10 @@ const AdminApp = {
 
         if (typeof marked !== 'undefined') {
             marked.setOptions({ breaks: true, gfm: true });
-            preview.innerHTML = marked.parse(content);
+            const rawHTML = marked.parse(content);
+            preview.innerHTML = typeof DOMPurify !== 'undefined'
+                ? DOMPurify.sanitize(rawHTML)
+                : rawHTML;
         } else {
             preview.innerHTML = `<p>${this.escapeHtml(content)}</p>`;
         }
@@ -802,12 +805,21 @@ const AdminApp = {
                 return;
             }
 
-            // 3. 提取公钥
-            const attestationObject = new Uint8Array(credential.response.attestationObject);
-            const clientDataJSON = new Uint8Array(credential.response.clientDataJSON);
-
-            // 解析 attestationObject 获取公钥（简化版：直接提取 CBOR 中的公钥）
-            const publicKeyJwk = await this.extractPublicKeyFromAttestation(credential.response);
+            // 3. 提取公钥（使用 WebAuthn 标准 API）
+            let publicKeyJwk;
+            if (credential.response.getPublicKey) {
+                const publicKeyBuffer = credential.response.getPublicKey();
+                const cryptoKey = await crypto.subtle.importKey(
+                    'spki',
+                    publicKeyBuffer,
+                    { name: 'ECDSA', namedCurve: 'P-256' },
+                    false,
+                    ['verify'],
+                );
+                publicKeyJwk = await crypto.subtle.exportKey('jwk', cryptoKey);
+            } else {
+                publicKeyJwk = await this.extractPublicKeyFromAttestation(credential.response);
+            }
 
             // 4. 发送给 Worker 完成
             const finishRes = await fetch(`${CONFIG.WORKER_URL}/auth/passkey/register/finish`, {

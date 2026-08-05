@@ -30,7 +30,7 @@ const BlogApp = {
      */
     formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('zh-CN', {
+        return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -42,7 +42,7 @@ const BlogApp = {
      */
     formatDateShort(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('zh-CN', {
+        return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
@@ -97,8 +97,8 @@ const BlogApp = {
         if (latest.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>暂无文章</h3>
-                    <p>敬请期待新内容。</p>
+                    <h3>No posts yet</h3>
+                    <p>Check back soon for new content.</p>
                 </div>
             `;
             return;
@@ -121,8 +121,8 @@ const BlogApp = {
         if (posts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <h3>暂无文章</h3>
-                    <p>敬请期待新内容。</p>
+                    <h3>No posts yet</h3>
+                    <p>Check back soon for new content.</p>
                 </div>
             `;
             return;
@@ -146,8 +146,8 @@ const BlogApp = {
         if (!postId) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>文章未找到</h3>
-                    <p>未指定文章 ID。<a href="/blog.html" style="color: var(--accent);">浏览所有文章 →</a></p>
+                    <h3>Post not found</h3>
+                    <p>No post ID specified. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
                 </div>
             `;
             return;
@@ -159,8 +159,8 @@ const BlogApp = {
         if (!post) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>文章未找到</h3>
-                    <p>该文章不存在或可能已被删除。<a href="/blog.html" style="color: var(--accent);">浏览所有文章 →</a></p>
+                    <h3>Post not found</h3>
+                    <p>This post doesn't exist or may have been removed. <a href="/blog.html" style="color: var(--accent);">Browse all posts →</a></p>
                 </div>
             `;
             return;
@@ -178,11 +178,11 @@ const BlogApp = {
         let contentHTML;
         if (typeof marked !== 'undefined') {
             marked.setOptions({ breaks: true, gfm: true });
-            contentHTML = marked.parse(post.content || '');
-            // Sanitize output to prevent XSS
-            if (typeof DOMPurify !== 'undefined') {
-                contentHTML = DOMPurify.sanitize(contentHTML);
-            }
+            const rawHTML = marked.parse(post.content || '');
+            // Sanitize with DOMPurify to prevent XSS
+            contentHTML = typeof DOMPurify !== 'undefined'
+                ? DOMPurify.sanitize(rawHTML)
+                : rawHTML;
         } else {
             contentHTML = `<p>${this.escapeHtml(post.content || '')}</p>`;
         }
@@ -196,7 +196,7 @@ const BlogApp = {
                 <div class="post-view-meta">
                     <span>${this.formatDate(post.date)}</span>
                     <span class="dot"></span>
-                    <span>${this.readingTime(post.content)} 分钟阅读</span>
+                    <span>${this.readingTime(post.content)} min read</span>
                 </div>
                 <h1>${this.escapeHtml(post.title)}</h1>
                 ${tags ? `<div class="post-view-tags">${tags}</div>` : ''}
