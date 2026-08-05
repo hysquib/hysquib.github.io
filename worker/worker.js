@@ -285,6 +285,7 @@ export default {
 
         return json({
           challenge,
+          rpId: 'hysquib.cn',
           userVerification: 'preferred',
           timeout: 60000,
         }, corsHeaders);
