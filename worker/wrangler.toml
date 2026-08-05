@@ -12,7 +12,7 @@ id = "aef763a945a541788c1cfb312789055c"
 
 # 环境变量（自动部署时会自动配置）
 [vars]
-OAUTH_CLIENT_ID = "你的GitHubOAuthClientID"
+OAUTH_CLIENT_ID = "Ov23liqPXgOJD3TGrnQV"
 GITHUB_REPO = "hysquib/hysquib.github.io"
 GITHUB_BRANCH = "main"
 POSTS_FILE_PATH = "data/posts.json"
