@@ -280,7 +280,7 @@ const AdminApp = {
     // ── 存储模式 ─────────────────────────────────────────────────────────────
 
     getStorageMode() {
-        return localStorage.getItem(this.STORAGE_KEY) || 'local';
+        return localStorage.getItem(this.STORAGE_KEY) || 'github';
     },
 
     changeStorageMode(mode) {
