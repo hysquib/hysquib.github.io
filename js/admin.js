@@ -507,12 +507,13 @@ const AdminApp = {
             );
 
             this.showView('posts-list');
+            btn.disabled = false;
+            btn.textContent = '保存并发布';
         } catch (err) {
             this.showToast(`保存失败：${err.message}`, 'error');
+            btn.disabled = false;
+            btn.textContent = '保存并发布';
         }
-
-        btn.disabled = false;
-        btn.textContent = '保存并发布';
     },
 
     async deleteCurrentPost() {
